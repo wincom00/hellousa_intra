@@ -1,0 +1,488 @@
+
+<?php
+   include "include/inc_base.php";
+    
+
+	$revInfo= getReserveInfo($r_code);
+	$prodInfo = getProductMaster($revInfo[p_code]);
+
+	$sday = $revInfo[stDate] ;
+	$eday = $revInfo[edDate] ;
+    $week = array("일" , "월"  , "화" , "수" , "목" , "금" ,"토") ;
+	$eweek = array("SUN" , "MON" , "TUE" , "WED" , "THU" , "FRI" ,"SAT") ;
+    $sweekday = $week[ date('w'  , strtotime($sday)  ) ] ;
+	$eweekday = $week[ date('w'  , strtotime($eday)  ) ] ;
+	$seweekday = $eweek[ date('w'  , strtotime($sday)  ) ] ;
+	$eeweekday = $eweek[ date('w'  , strtotime($eday)  ) ] ;
+	if ($revInfo[base_rate] == "CAD") {
+		$sign = "C$";
+	} else {
+		$sign = "U$";
+	}
+	$disinfo = codebaseName($revInfo[dis_code]);
+	$disamt = getReserveSum($r_code);
+	$totamt = $revInfo[last_total] ;//- $disamt[amt];
+	$lasttot = $revInfo[last_sale] + $revInfo[last_add];
+	if ($revInfo[base_rate] == "CAD") {
+		$pricep = $totamt/1.13;
+		$taxp = $totamt - $pricep;
+	} 
+	$rev_dbinfo = getinfo_dbMember($revInfo[userid]);
+	$today = date("Y-m-d");
+
+	if ($mode == "print") {
+		echo "<meta http-equiv='refresh' content='0; url=./invoice_p.php?division=3&pdx=2&sub=15&r_code=".$r_code."'>";
+
+	}
+?>
+
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>푸른투어</title>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+	<link href="https://fonts.googleapis.com/css?family=Montserrat|Open+Sans|Roboto&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css?family=Nanum+Gothic" rel="stylesheet">
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<link rel="stylesheet" href="/resources/demos/style.css">
+	<link href="css/invoice-f.css" rel="stylesheet" id="invoice-css">
+
+	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+    <style type="text/css">
+	  @media print {
+		  @page { margin: 0;margin-top: 1.6 cm; }
+		  body { margin: 1 cm; }
+	  }
+	</style>
+</head>
+
+<body>
+<form name=print id=print action='<?= $PHP_SELF ?>?division=<?=$division?>&pdx=<?=$pdx?>&sub=<?=$sub?>&r_code=<?=$r_code?>' method=post enctype="multipart/form-data">
+  <input type=hidden name=r_code value="<?= $r_code ?>">
+  <input type=hidden name=mode id="mode" value="send_email">
+   <table cellpadding="0" cellspacing="0" style="margin: auto;max-width: 900px;padding: 20px 10px 20px 5px;">
+           <tr>
+				<td style="padding-bottom: 5px;align-text:left;">
+                     <img src="http://www.myprt.online/img/top_in3.png">
+                </td>
+		   </tr>
+	</table>
+    <div style="max-width: 900px;
+        margin: auto;
+        padding: 20px 10px 20px 10px;
+        /*border: 1px solid #eee;
+        box-shadow: 0 0 10px rgba(0, 0, 0, .15);  */
+        font-size: 16px;
+        line-height: 21px;
+        font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
+        color: #555;">
+        <table cellpadding="0" cellspacing="0" style="width: 100%;line-height: inherit;text-align: left;">
+            <tr>
+                <td colspan="2" style="vertical-align: top;">
+                    <table style="width: 100%;line-height: inherit;text-align: left;">
+                        <tr>
+                            
+							<!--<td style="font-size: 12px;color: #111;padding:5px;">
+								<table style="width: 100%;line-height: inherit;text-align: left;">
+									<tr>
+										<td colspan="5" style="font-size:11px;vertical-align: top;text-align: left;color:#111;font-weight:700;">
+										미국 본사:324 Broad Ave.Ridgefield, NJ 07657 T.1.201.778.4000 F.1.201.313.0890 
+										</td>
+									</tr>
+									<tr>
+										<td colspan="5" style="font-size:11px;vertical-align: top;text-align: left;color:#111;font-weight:700;">
+										*인센티브/패키지 문의 usa@prttour.com / prlseoul@prttour.com *모든투어 문의 local@prttour.com *웹사이트 www.prttour.com
+										</td>
+									</tr>
+									<tr>
+										<td style="font-size:11px;vertical-align: top;text-align: left;color:#111;font-weight:700;">
+										뉴욕(플러싱)지사:154-08 Northern Blvd #2B Flushing, NY 11354 | T: 1.718.928.3333 | F : 1.718.460.7889
+										</td>
+									 </tr>
+									<tr>
+										<td colspan="5" style="font-size:11px;vertical-align: top;text-align: left;color:#111;font-weight:700;">
+										서부 본부:3435 Wilshire Blvd, #152 Los Angeles, CA 90010 | T : 1.213.739.2222 | F : 1.213.279.2220
+										</td>
+									</tr>
+									<tr>
+										<td colspan="5" style="font-size:11px;vertical-align: top;text-align: left;color:#111;font-weight:700;">
+										서울 지사: Officia #1922, 92 Saemunan-ro Jongno-gu, Seoul┃T : 82.2.739.0890┃F : 82.2.739.0892
+										</td>
+									</tr>
+									<tr>
+										<td colspan="5" style="font-size:11px;vertical-align: top;text-align: left;color:#111;font-weight:700;">
+										토론토 지사: Unit203,77Finch Ave W.North York,ON,M2N 2H5┃T : 1.416.222.65520
+										</td>
+									</tr>
+									<tr>
+										<td colspan="5" style="font-size:11px;vertical-align: top;text-align: left;color:#111;font-weight:700;">
+										라스베가스 지사: 6850 Spring Mountain Rd., #127 Las Vegas, NV 89146 ┃T : 1.702.861.2377 ┃F : 702.410.5883
+										</td>
+									</tr>	
+								</table>
+                            </td>-->
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+			<tr><td style="padding-bottom:12px;"></td></tr>
+			<tr>
+                <td colspan="2" style="line-height:35px;padding: 5px;vertical-align: top;background-color: #f3f3f3;font-weight: 700;color:#111;text-align:center;font-size:24px;">
+                    INVOICE
+                </td>
+            </tr>
+
+			<tr>
+                <td colspan="2">
+                    <table style="width: 100%;line-height: inherit;text-align: left;">
+                        <tr>
+                            <td style="padding-left: 3px;padding-top:15px;font-weight: 700;text-align:left;font-size: 14px; color:#111;">
+                                Sales Person: <?=$rev_dbinfo[kor_name]?>
+                            </td>
+                            
+                            <td style="padding-left: 3px;padding-top:15px;font-weight: 700;text-align:right;font-size: 14px; color:#111;">
+								Reserve Date: <?=$revInfo[revDate]?>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr><td style="padding-bottom:12px;"></td></tr>
+			<tr>
+                <td colspan="2" style="padding-top:15px;">
+                    <table style="width: 100%;line-height: inherit;text-align: left;border: 1px solid #ddd;border-collapse:collapse;">
+                        <tr>
+                            <td style="padding:5px;background: #f3f3f3;font-weight: 700;text-align:center;font-size: 14px; color:#111;border: 1px solid #ddd;">
+                               Reserve Number
+                            </td>
+                            
+                            <td colspan=3 style="padding:5px;font-size: 13px;font-weight: 5	00;border: 1px solid #ddd;">
+								<?=$revInfo[reserveCode]?>
+                            </td>
+							
+                        </tr>
+						<tr>
+                            <td style="padding:5px;background: #f3f3f3;font-weight: 700;text-align:center;font-size: 14px; color:#111;border: 1px solid #ddd;">
+                                Customer
+                            </td>
+                            
+                            <td style="padding:5px;font-size: 13px;border: 1px solid #ddd;">
+								<?=$revInfo[book_pri]?>
+                            </td>
+							<td style="padding:5px;background: #f3f3f3;font-weight: 700;text-align:center;font-size: 14px;color:#111;border: 1px solid #ddd;">
+                                Phone
+                            </td>
+                            
+                            <td style="padding:5px;font-size: 15px;border: 1px solid #ddd;">
+								<?=$revInfo[book_phone]?>
+                            </td>
+                        </tr>
+						<tr>
+                            <td style="padding:5px;background: #f3f3f3;text-align:center;font-weight: 700;font-size: 14px;color:#111;border: 1px solid #ddd;">
+                                Tour Name
+                            </td>
+                            
+                            <td style="padding:5px;font-size: 13px;border: 1px solid #ddd;">
+								<?=$prodInfo[p_name]?>
+                            </td>
+							<td style="padding:5px;background: #f3f3f3;text-align:center;font-weight: 700;font-size: 14px;color:#111;border: 1px solid #ddd;">
+                                Email
+                            </td>
+                            
+                            <td style="padding:5px;font-size: 13px;border: 1px solid #ddd;">
+								<?=$revInfo[book_email]?>
+                            </td>
+                        </tr>
+						<tr>
+                            <td style="padding:5px;background: #f3f3f3;text-align:center;font-weight: 700;font-size: 14px;color:#111;border: 1px solid #ddd;">
+                                Tour Date
+                            </td>
+                            
+                            <td style="padding:5px;font-size: 13px;border: 1px solid #ddd;">
+								<?=$revInfo[stDate]?>(<?=$sweekday?>)~<?=$revInfo[edDate]?>(<?=$eweekday?>)
+                            </td>
+							<td style="padding:5px;background: #f3f3f3;text-align:center;font-weight: 700;font-size: 14px;color:#111;border: 1px solid #ddd;">
+                                PAX
+                            </td>
+                            
+                            <td style="padding:5px;text-align:right;font-size: 13px;border: 1px solid #ddd;">
+								<table style="width: 100%;line-height: inherit;text-align: left;">
+									<tr>
+										
+										<td> Total: <?=$revInfo[p_cnt]?></td>
+									</tr>
+								</table>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+			<tr><td style="padding-bottom:20px;"></td></tr>
+
+			<tr>
+                <td colspan="2" style="padding-top:15px;">
+                    <table style="width: 100%;line-height: 21px;text-align: left;border: 1px solid #ddd;border-collapse:collapse;">
+                        <tr>
+							<td colspan="2" style="width:70%;padding: 5px;background: #f3f3f3;border: 1px solid #ddd;font-weight: 700;font-size: 14px;color:#111;text-align:center;">
+								DESCRIPTION
+							</td>
+							<td style="width:10%;padding: 5px;background: #f3f3f3;border: 1px solid #ddd;font-weight: 700;font-size: 14px;color:#111;text-align:center;">
+								AMT
+							</td>
+							<td style="width:10%;padding: 5px;background: #f3f3f3;border: 1px solid #ddd;font-weight: 700;font-size: 14px;color:#111;text-align:center;">
+								PERSON
+							</td>
+							<td style="width:10%;padding: 5px;background: #f3f3f3;border: 1px solid #ddd;font-weight: 700;font-size: 14px;color:#111;text-align:center;">
+								SUB AMT
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2" style="width:70%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right"><?=$prodInfo[p_name]?></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right">$<?=$revInfo[last_sale]?></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:center"><?=$revInfo[p_cnt]?></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right">$<?=$revInfo[last_total]?></td>
+						</tr>
+						<tr>
+							<td colspan="2" rowspan="10" style="width:70%;font-size:12px;color:#111;padding: 7px;border: 1px solid #ddd;font-size:13px;color:#111;vertical-align:top;">
+							
+
+							<span style="color:#111;font-weight:700;"><?=nl2br($revInfo[progress])?> </span> <br>
+							 </td>	
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right"></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:center"></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right">$0.00</td>
+						</tr>
+						<tr>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right"></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:center"></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right">$0.00</td>
+						</tr>
+						<tr>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right"></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:center"></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right">$0.00</td>
+						</tr>
+						<tr>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right"></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:center"></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right">$0.00</td>
+						</tr>
+						<tr>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right"></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:center"></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right">$0.00</td>
+						</tr>
+						<tr>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right"></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:center"></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right">$0.00</td>
+						</tr>
+						<tr>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right"></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:center"></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right">$0.00</td>
+						</tr>
+						<tr>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right"></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:center"></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right">$0.00</td>
+						</tr>
+						<tr>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right"></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:center"></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right">$0.00</td>
+						</tr>
+						<tr>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right"></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:center"></td>
+							<td style="width:10%;font-size:12px;color:#111;padding: 5px;border: 1px solid #ddd;font-size:13px;color:#111;text-align:right">$0.00</td>
+						</tr>
+						<tr>
+							<td style="background: #f3f3f3;border: 1px solid #ddd;width:20%;padding: 5px;color:#111;vertical-align:top;font-weight: 700;font-size: 14px;color:#111;text-align:center;">TOTAL
+							</td>
+							<td style="width:50%;border: 1px solid #ddd;padding: 5px;color:#111;text-align:right;vertical-align:top;font-weight: 400;font-size: 13px;color:#111;text-align:center;"></td>
+							<td style="background: #f3f3f3;border: 1px solid #ddd;padding: 5px;color:#111;text-align:right;vertical-align:top;font-weight: 700;font-size: 14px;color:#111;text-align:center;">USD</td>
+							<td colspan="2" style="background: #f3f3f3;border: 1px solid #ddd;padding: 5px;color:#111;text-align:right;vertical-align:top;font-weight: 700;font-size: 14px;color:#111;text-align:right;">$<?=$revInfo[last_total]?></td>
+						</tr>
+					</table>
+					<table style="width: 100%;line-height: 21px;text-align: left;border: 1px solid #ddd;border-collapse:collapse;">
+					<?php
+									$qryr = "select *,DATE_FORMAT(wdate, '%Y-%m-%d') as wwdate from payment_history where reserveCode = '$r_code' && pay_method !='init'  order by seq_no asc";
+									//echo $qryr;
+									$rstr = mysql_query($qryr);
+									$cntr= mysql_num_rows($rstr);
+									$i = 0;
+									if ($cntr > 0) {
+										while($row = mysql_fetch_assoc($rstr)):
+										  
+										   $rate = "";
+										   switch ($row[pay_method])
+										   {
+												case "cash" : 
+													$cappay = "현금";
+													break;   
+												case "creditcard" : 
+													$cappay = "신용카드";
+													break;
+												case "debitcard" : 
+													$cappay = "데빗";
+													break;
+												
+												case "bcreditcard" : 
+													$cappay = "자사단말기";
+													break; 
+												case "check" : 
+													$cappay = "체크";
+													break; 
+												case "banktransfer" : 
+													$cappay = "은행송금";
+													break; 
+												case "giftcertificate" : 
+													$cappay = "상품권";
+													break; 
+												case "fundtransfer" : 
+													$cappay = "금액이동";
+													break; 
+												default : 
+													$cappay = "";
+													break; 
+												
+											}
+											
+											if ($row[payment_status] == "RETURN") {
+												$pamt = "<font color=red>-".$sign." ".$row[payment]."</font>";
+											} else {
+
+												$pamt = $sign." ".$row[payment];
+											}
+											
+
+						?>
+						<tr>
+							<td style="width:5%;background: #f3f3f3;border: 1px solid #ddd;padding: 5px;color:#111;vertical-align:top;font-weight: 700;font-size: 14px;color:#111;text-align:center;">PAY METHOD
+							</td>
+							<td style="width:10%;border: 1px solid #ddd;padding: 5px;color:#111;vertical-align:top;font-weight: 400;font-size: 14px;color:#111;text-align:left;"><?=$cappay?>
+							</td>
+							<td style="width:10%;background: #f3f3f3;border: 1px solid #ddd;padding: 5px;color:#111;vertical-align:top;font-weight: 700;font-size: 14px;color:#111;text-align:center;">Date
+							</td>
+							<td style="width:13%;border: 1px solid #ddd;padding: 5px;color:#111;vertical-align:top;font-weight: 400;font-size: 14px;color:#111;text-align:left;"><?=$row[wwdate]?>
+							</td>
+							<td style="width:10%;background: #f3f3f3;border: 1px solid #ddd;padding: 5px;color:#111;vertical-align:top;font-weight: 700;font-size: 14px;color:#111;text-align:center;">Memo
+							</td>
+							<td style="width:20%;border: 1px solid #ddd;padding: 5px;color:#111;text-align:right;vertical-align:top;font-weight: 400;font-size: 13px;color:#111;text-align:left;"><?=$row[pay_memo]?></td>
+							<td style="background: #f3f3f3;border: 1px solid #ddd;padding: 5px;color:#111;text-align:right;vertical-align:top;font-weight: 700;font-size: 14px;color:#111;text-align:center;">USD</td>
+							<td colspan="2" style="background: #f3f3f3;border: 1px solid #ddd;padding: 5px;color:#111;text-align:right;vertical-align:top;font-weight: 700;font-size: 14px;color:#111;text-align:right;"><?=$pamt?></td>
+						</tr>
+						<?php
+										$i++;
+						                endwhile;
+									
+									} else {
+						?>
+						<tr>
+							<td style="width:5%;background: #f3f3f3;border: 1px solid #ddd;padding: 5px;color:#111;vertical-align:top;font-weight: 700;font-size: 14px;color:#111;text-align:center;">PAY METHOD
+							</td>
+							<td style="width:10%;border: 1px solid #ddd;padding: 5px;color:#111;vertical-align:top;font-weight: 400;font-size: 14px;color:#111;text-align:left;">
+							</td>
+							<td style="width:10%;background: #f3f3f3;border: 1px solid #ddd;padding: 5px;color:#111;vertical-align:top;font-weight: 700;font-size: 14px;color:#111;text-align:center;">Date
+							</td>
+							<td style="width:10%;border: 1px solid #ddd;padding: 5px;color:#111;vertical-align:top;font-weight: 400;font-size: 14px;color:#111;text-align:left;">
+							</td>
+							<td style="width:10%;background: #f3f3f3;border: 1px solid #ddd;padding: 5px;color:#111;vertical-align:top;font-weight: 700;font-size: 14px;color:#111;text-align:center;">Memo
+							</td>
+							<td style="width:25%;border: 1px solid #ddd;padding: 5px;color:#111;text-align:right;vertical-align:top;font-weight: 400;font-size: 13px;color:#111;text-align:left;"></td>
+							<td style="background: #f3f3f3;border: 1px solid #ddd;padding: 5px;color:#111;text-align:right;vertical-align:top;font-weight: 700;font-size: 14px;color:#111;text-align:center;"></td>
+							<td colspan="2" style="background: #f3f3f3;border: 1px solid #ddd;padding: 5px;color:#111;text-align:right;vertical-align:top;font-weight: 700;font-size: 14px;color:#111;text-align:right;"></td>
+						</tr>
+
+						<?php
+						              
+									}
+						?>
+						<tr>
+							<td  style="width:5%;background: #f3f3f3;border: 1px solid #ddd;padding: 5px;color:#111;vertical-align:top;font-weight: 700;font-size: 14px;color:#111;text-align:center;">BALANCE
+							</td>
+							
+							<td colspan="5" style="width:30%;border: 1px solid #ddd;padding: 5px;color:#111;text-align:right;vertical-align:top;font-weight: 400;font-size: 13px;color:#111;text-align:left;"></td>
+							<td style="background: #f3f3f3;border: 1px solid #ddd;padding: 5px;color:#111;text-align:right;vertical-align:top;font-weight: 700;font-size: 14px;color:#111;text-align:center;">USD</td>
+							<td colspan="2" style="background: #f3f3f3;border: 1px solid #ddd;padding: 5px;color:#111;text-align:right;vertical-align:top;font-weight: 700;font-size: 14px;color:#111;text-align:right;">$<?=$revInfo[last_bal]?></td>
+						</tr>
+						<tr>
+							<td style="width:20%;background: #f3f3f3;border: 1px solid #ddd;padding: 5px;color:#111;vertical-align:top;font-weight: 700;font-size: 14px;color:#111;text-align:center;">FORM OF PAYMENT
+							</td>
+							<td colspan="7" style="padding: 5px;color:#111;vertical-align:top;font-weight: 400;font-size: 13px;color:#111;text-align:left;border: 1px solid #ddd;">디파짓 결제 각자 해주심,나머지 잔금 한달전에 완불 예정 </td>
+						</tr>
+                    </table>
+                </td>
+            </tr>
+
+			<tr>
+                <td colspan="8" style="padding-top:15px;">
+                    <table style="width: 100%;line-height: inherit;text-align: left;">
+                        <tr>
+							<td style="padding: 5px;font-weight: 400;font-size: 13px;color:blue;text-align:left;">
+								※미동부/미서부/그외 투어 : 출발 2~3주전까지 완불 입니다
+						</tr>
+						<tr>
+							<td style="padding: 5px;font-weight: 400;font-size: 13px;color:blue;text-align:left;">
+								※전날예약자는 전액 완불 입니다!! 캔슬시 환불 안됩니다.
+						</tr>
+						<tr>
+							<td style="padding: 5px;font-weight: 400;font-size: 13px;color:blue;text-align:left;">
+								※투어 규정은 꼭 확인요청드립니다.(성수기시즌은 약간씩 규정이 변경될수 있습니다. 꼭 담당자께 확인요청드립니다.)
+						</tr>
+						<tr>
+							<td style="padding: 5px;font-weight: 400;font-size: 13px;color:red;text-align:left;">
+								※국제선&국내선 항공권은 발권후에 요금이 변동이 되어도 환불 또는 취소하실경우엔 패널티가 발생하므로 이점 꼭 유념해서 확인부탁드립니다.
+						</tr>
+						<tr>
+							<td style="padding: 5px;font-weight: 400;font-size: 13px;color:red;text-align:left;">
+								※고객님의 개인사정으로 국경을 통과하지 못하였거나, 부득이 한 사정으로 인하여 투어를 중단 하실경우에는 모든 책임과 금점적인 부담은 여행자 본인에게 있습니다.
+						</tr>
+						<tr>
+							<td style="padding: 5px;font-weight: 400;font-size: 13px;color:red;text-align:left;">
+								★캐나다 관광(국경 통과)시 학생은 학교 관계자의 싸인(6개월 이상 남아 있어야 함) 이 되어있는 I-20 , 교환 교수는 학교에서 발부되는 체류자격 서류를 필히 지참하시길 바랍니다.
+						</tr>
+						<tr>
+							<td style="padding: 5px;font-weight: 400;font-size: 13px;color:red;text-align:left;">
+								★미국 영주권자의 경우 영주권과 여권, 시민권자의 경우 여권, 한국에서 오신경우에는 여권과 리턴티켓이 있어야 합니다.
+						</tr>
+						<tr>
+							<td style="padding: 5px;font-weight: 400;font-size: 13px;color:red;text-align:left;">
+								★여권 유효기간은 출발일로부터 6개월 이상 남아있어야 합니다.
+						</tr>
+						<tr>
+							<td style="padding: 5px;font-weight: 400;font-size: 13px;color:red;text-align:left;">
+								★한국 및 미국 여권 외에 다른 여권을 소유하고 계신 분들은 비자가 필요한지 꼭 확인 부탁드립니다.<br>
+								투어 외 발생하는 모든 비용은 투어 당사자에게 있으며 본사(푸른)은 책임지지 않습니다.
+						</tr>
+						<tr>
+							<td style="padding: 5px;font-weight: 400;font-size: 13px;color:red;text-align:left;">
+								※기상악화로 인해 투어 및 항공이 진행(운행)이 되지 않을경우에는 당사(푸른)에 책임이 없음을 알려드립니다.
+						</tr>
+						<tr>
+							<td style="padding: 5px;font-weight: 400;font-size: 13px;color:blue;text-align:left;">
+								※해외 여행자 보험은 불포함입니다. 출국 전 개별적으로 가입하시는 것을 권장합니다.
+						</tr>
+						<tr>
+							<td style="padding: 5px;font-weight: 400;font-size: 13px;color:blue;text-align:left;">
+								※항공사측에서 항공편을 변경 및 캔슬 할 경우에 당사(푸른)의 책임은 없음을 알려드립니다.
+						</tr>
+						<tr><td style="padding-bottom:15px;"></td></tr>
+						<tr>
+							<td style="padding:5px;font-weight: 400;font-size: 13px;color:#111;text-align:center;border-top:1px solid #ddd;">
+								저희 푸른투어를 이용해 주셔서 대단히 감사합니다.<br>
+								즐거운 여행 되십시요.
+						</tr>
+					</table>
+				</td>
+			</tr>
+        </table>
+    </div>
+</form>
+	
+</body>
+</html>

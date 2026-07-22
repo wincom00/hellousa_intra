@@ -1,0 +1,204 @@
+[28-May-2025 15:01:33 America/NEW_YORK] 파일 처리 시작: upload/reservations/1748458893_0__F0606_참좋은루밍(AEI057).xlsx, 상품코드: AEI057, 확장자: xlsx
+[28-May-2025 15:01:33 America/NEW_YORK] 시트 개수: 3, 시트명: RommingList_UPP3985-250603KE, RommingList_UPP3986-250606YP, RommingList_UPP3986-250606FRI
+[28-May-2025 15:01:33 America/NEW_YORK] 시트 0 행 개수: 39
+[28-May-2025 15:01:33 America/NEW_YORK] 첫 5행 내용: [["","","","","","","","","","","",""],["ROOMING LIST","","","","","","","","","","",""],["A T T N","","","","","","","","","","",""],["F R O M","","","","","","","","","","",""],["\ud589\uc0ac\ucf54\ub4dc","","UPP3985-250603KE","","","","\ud589 \uc0ac \uba85","","[\ub300\ud55c\ud56d\uacf5\/\ud018\ubca11\ubc15&\ubcf4\uc2a4\ud134] \ubbf8\ub3d9\ubd80 \uce90\ub098\ub2e4 \ub098\uc774\uc544\uac00\ub77c 10\uc77c","","",""]]
+[28-May-2025 15:01:33 America/NEW_YORK] 데이터 추출 시작 - 초기 상품코드: AEI057, 전체 행 수: 39
+[28-May-2025 15:01:33 America/NEW_YORK] 행 0: 첫번째셀='', 전체내용=["","","","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 1: 첫번째셀='ROOMING LIST', 전체내용=["ROOMING LIST","","","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 헤더 행 발견 (행 1): ["ROOMING LIST","","","","","","","","","","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 2: 첫번째셀='A T T N', 전체내용=["A T T N","","","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 3: 첫번째셀='F R O M', 전체내용=["F R O M","","","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 4: 첫번째셀='행사코드', 전체내용=["\ud589\uc0ac\ucf54\ub4dc","","UPP3985-250603KE","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 5: 첫번째셀='인 솔 자', 전체내용=["\uc778 \uc194 \uc790","","\uc5c6\uc74c","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 6: 첫번째셀='출 력 일', 전체내용=["\ucd9c \ub825 \uc77c ","","2025-05-09 16:15:00","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 7: 첫번째셀='', 전체내용=["","","","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 8: 첫번째셀='Rm.No', 전체내용=["Rm.No","Mem.","\uac1d\uc2e4","\uc601\ubb38\uba85",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 9: 첫번째셀='', 전체내용=["","N","A","HYUN SEOHA",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 10: 첫번째셀='', 전체내용=["","Y","A","KIM HUNKYO",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 11: 첫번째셀='', 전체내용=["","N","A","KIM LOHAN",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 12: 첫번째셀='', 전체내용=["","Y","A","KIM DUK KI",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 13: 첫번째셀='', 전체내용=["","N","A","KIM HYEONG IK",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 14: 첫번째셀='', 전체내용=["","N","A","JUNG YEON JUNG",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 15: 첫번째셀='', 전체내용=["","Y","A","YOO SO JIN",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 16: 첫번째셀='', 전체내용=["","N","A","SEO JEONG WON",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 17: 첫번째셀='', 전체내용=["","N","A","SEO YUNSEO",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 18: 첫번째셀='', 전체내용=["","N","A","SEO JAEHYUNG",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 19: 첫번째셀='', 전체내용=["","Y","A","YEO KIDONG",""]
+[28-May-2025 15:01:33 America/NEW_YORK] DB에서 상품명 조회 성공: 참좋은단독 7박10일 시내,코치(화,목) - JFK
+[28-May-2025 15:01:33 America/NEW_YORK] 최종 투어 정보: {"product_code":"AEI057","tour_name":"\ucc38\uc88b\uc740\ub2e8\ub3c5 7\ubc1510\uc77c \uc2dc\ub0b4,\ucf54\uce58(\ud654,\ubaa9) - JFK","start_date":"","end_date":""}
+[28-May-2025 15:01:33 America/NEW_YORK] 헤더 발견 여부: YES
+[28-May-2025 15:01:33 America/NEW_YORK] 데이터 시작 행: 2
+[28-May-2025 15:01:33 America/NEW_YORK] 행 2 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:33 America/NEW_YORK] 행 3 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:33 America/NEW_YORK] 행 4 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:33 America/NEW_YORK] 행 5 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:33 America/NEW_YORK] 행 6 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:33 America/NEW_YORK] 최종 추출된 예약 데이터 개수: 0
+[28-May-2025 15:01:33 America/NEW_YORK] 추출된 예약 데이터 개수: 0
+[28-May-2025 15:01:33 America/NEW_YORK] 시트 1 행 개수: 16
+[28-May-2025 15:01:33 America/NEW_YORK] 첫 5행 내용: [["ROOMING LIST","","","","","","","","","","",""],["A T T N","","","","","","","","","","",""],["F R O M","","","","","","","","","","",""],["\ud589\uc0ac\ucf54\ub4dc","","UPP3986-250606YP","","","","\ud589 \uc0ac \uba85","","[\uc2e4\uc2dc\uac04\ud56d\uacf5\/\ud018\ubca1\uc219\ubc15&\ubcf4\uc2a4\ud134] \ubbf8\ub3d9\ubd80 \uce90\ub098\ub2e4 \ub098\uc774\uc544\uac00\ub77c 10\uc77c","","",""],["\uc778 \uc194 \uc790","","\uc5c6\uc74c","","","","\uae30\u00a0\u00a0\u00a0\u00a0\uac04","","2025-06-06 (YP131 ) ~ 2025-06-15 (YP132 ) \/ 10\uc77c\uac04","","",""]]
+[28-May-2025 15:01:33 America/NEW_YORK] 데이터 추출 시작 - 초기 상품코드: AEI057, 전체 행 수: 16
+[28-May-2025 15:01:33 America/NEW_YORK] 행 0: 첫번째셀='ROOMING LIST', 전체내용=["ROOMING LIST","","","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 헤더 행 발견 (행 0): ["ROOMING LIST","","","","","","","","","","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 1: 첫번째셀='A T T N', 전체내용=["A T T N","","","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 2: 첫번째셀='F R O M', 전체내용=["F R O M","","","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 3: 첫번째셀='행사코드', 전체내용=["\ud589\uc0ac\ucf54\ub4dc","","UPP3986-250606YP","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 4: 첫번째셀='인 솔 자', 전체내용=["\uc778 \uc194 \uc790","","\uc5c6\uc74c","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 5: 첫번째셀='출 력 일', 전체내용=["\ucd9c \ub825 \uc77c ","","2025-05-09 16:16:00","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 6: 첫번째셀='', 전체내용=["","","","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 7: 첫번째셀='Rm.No', 전체내용=["Rm.No","Mem.","\uac1d\uc2e4","\uc601\ubb38\uba85",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 8: 첫번째셀='', 전체내용=["","Y","A","BAIK SEUNG MEE",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 9: 첫번째셀='', 전체내용=["","Y","A","CHUNG BONG EUN",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 10: 첫번째셀='', 전체내용=["","","","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 11: 첫번째셀='총 고객수', 전체내용=["\ucd1d \uace0\uac1d\uc218","","","","2 \uba85"]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 12: 첫번째셀='객 실 수', 전체내용=["\uac1d \uc2e4 \uc218","","Single","",0]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 13: 첫번째셀='', 전체내용=["","","Twin","",1]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 14: 첫번째셀='', 전체내용=["","","Triple","",0]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 15: 첫번째셀='M E M O', 전체내용=["M E M O","","","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] DB에서 상품명 조회 성공: 참좋은단독 7박10일 시내,코치(화,목) - JFK
+[28-May-2025 15:01:33 America/NEW_YORK] 최종 투어 정보: {"product_code":"AEI057","tour_name":"\ucc38\uc88b\uc740\ub2e8\ub3c5 7\ubc1510\uc77c \uc2dc\ub0b4,\ucf54\uce58(\ud654,\ubaa9) - JFK","start_date":"","end_date":""}
+[28-May-2025 15:01:33 America/NEW_YORK] 헤더 발견 여부: YES
+[28-May-2025 15:01:33 America/NEW_YORK] 데이터 시작 행: 1
+[28-May-2025 15:01:33 America/NEW_YORK] 행 1 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:33 America/NEW_YORK] 행 2 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:33 America/NEW_YORK] 행 3 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:33 America/NEW_YORK] 행 4 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:33 America/NEW_YORK] 행 5 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:33 America/NEW_YORK] 최종 추출된 예약 데이터 개수: 0
+[28-May-2025 15:01:33 America/NEW_YORK] 추출된 예약 데이터 개수: 0
+[28-May-2025 15:01:33 America/NEW_YORK] 시트 2 행 개수: 18
+[28-May-2025 15:01:33 America/NEW_YORK] 첫 5행 내용: [["","","","","","","","","","","",""],["ROOMING LIST","","","","","","","","","","",""],["A T T N","","","","","","","","","","",""],["F R O M","","","","","","","","","","",""],["\ud589\uc0ac\ucf54\ub4dc","","UPP3986-250606FRI","","","","\ud589 \uc0ac \uba85","","[\uc2e4\uc2dc\uac04\ud56d\uacf5\/\ud018\ubca1\uc219\ubc15&\ubcf4\uc2a4\ud134] \ubbf8\ub3d9\ubd80 \uce90\ub098\ub2e4 \ub098\uc774\uc544\uac00\ub77c 10\uc77c","","",""]]
+[28-May-2025 15:01:33 America/NEW_YORK] 데이터 추출 시작 - 초기 상품코드: AEI057, 전체 행 수: 18
+[28-May-2025 15:01:33 America/NEW_YORK] 행 0: 첫번째셀='', 전체내용=["","","","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 1: 첫번째셀='ROOMING LIST', 전체내용=["ROOMING LIST","","","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 헤더 행 발견 (행 1): ["ROOMING LIST","","","","","","","","","","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 2: 첫번째셀='A T T N', 전체내용=["A T T N","","","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 3: 첫번째셀='F R O M', 전체내용=["F R O M","","","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 4: 첫번째셀='행사코드', 전체내용=["\ud589\uc0ac\ucf54\ub4dc","","UPP3986-250606FRI","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 5: 첫번째셀='인 솔 자', 전체내용=["\uc778 \uc194 \uc790","","\uc5c6\uc74c","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 6: 첫번째셀='출 력 일', 전체내용=["\ucd9c \ub825 \uc77c ","","2025-05-09 16:16:00","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 7: 첫번째셀='', 전체내용=["","","","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 8: 첫번째셀='Rm.No', 전체내용=["Rm.No","Mem.","\uac1d\uc2e4","\uc601\ubb38\uba85",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 9: 첫번째셀='', 전체내용=["","Y","A","LEE SANGHYUN",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 10: 첫번째셀='', 전체내용=["","N","A","YUN JUHEE",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 11: 첫번째셀='', 전체내용=["","N","A","LEE YUJUN",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 12: 첫번째셀='', 전체내용=["","","","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 13: 첫번째셀='총 고객수', 전체내용=["\ucd1d \uace0\uac1d\uc218","","","","3 \uba85"]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 14: 첫번째셀='객 실 수', 전체내용=["\uac1d \uc2e4 \uc218","","Single","",0]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 15: 첫번째셀='', 전체내용=["","","Twin","",0]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 16: 첫번째셀='', 전체내용=["","","Triple","",1]
+[28-May-2025 15:01:33 America/NEW_YORK] 행 17: 첫번째셀='M E M O', 전체내용=["M E M O","","\uc774;\uc0c1\ud604, \uc724\uc8fc\ud76c,\uc774\uc720\uc900\/1\ub8f8","",""]
+[28-May-2025 15:01:33 America/NEW_YORK] DB에서 상품명 조회 성공: 참좋은단독 7박10일 시내,코치(화,목) - JFK
+[28-May-2025 15:01:33 America/NEW_YORK] 최종 투어 정보: {"product_code":"AEI057","tour_name":"\ucc38\uc88b\uc740\ub2e8\ub3c5 7\ubc1510\uc77c \uc2dc\ub0b4,\ucf54\uce58(\ud654,\ubaa9) - JFK","start_date":"","end_date":""}
+[28-May-2025 15:01:33 America/NEW_YORK] 헤더 발견 여부: YES
+[28-May-2025 15:01:33 America/NEW_YORK] 데이터 시작 행: 2
+[28-May-2025 15:01:33 America/NEW_YORK] 행 2 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:33 America/NEW_YORK] 행 3 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:33 America/NEW_YORK] 행 4 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:33 America/NEW_YORK] 행 5 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:33 America/NEW_YORK] 행 6 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:33 America/NEW_YORK] 최종 추출된 예약 데이터 개수: 0
+[28-May-2025 15:01:33 America/NEW_YORK] 추출된 예약 데이터 개수: 0
+[28-May-2025 15:01:33 America/NEW_YORK] 전체 추출된 데이터 개수: 0
+[28-May-2025 15:01:59 America/NEW_YORK] 파일 처리 시작: upload/reservations/1748458919_0__F0606_참좋은루밍(AEI057).xlsx, 상품코드: AEI057, 확장자: xlsx
+[28-May-2025 15:01:59 America/NEW_YORK] 시트 개수: 3, 시트명: RommingList_UPP3985-250603KE, RommingList_UPP3986-250606YP, RommingList_UPP3986-250606FRI
+[28-May-2025 15:01:59 America/NEW_YORK] 시트 0 행 개수: 39
+[28-May-2025 15:01:59 America/NEW_YORK] 첫 5행 내용: [["","","","","","","","","","","",""],["ROOMING LIST","","","","","","","","","","",""],["A T T N","","","","","","","","","","",""],["F R O M","","","","","","","","","","",""],["\ud589\uc0ac\ucf54\ub4dc","","UPP3985-250603KE","","","","\ud589 \uc0ac \uba85","","[\ub300\ud55c\ud56d\uacf5\/\ud018\ubca11\ubc15&\ubcf4\uc2a4\ud134] \ubbf8\ub3d9\ubd80 \uce90\ub098\ub2e4 \ub098\uc774\uc544\uac00\ub77c 10\uc77c","","",""]]
+[28-May-2025 15:01:59 America/NEW_YORK] 데이터 추출 시작 - 초기 상품코드: AEI057, 전체 행 수: 39
+[28-May-2025 15:01:59 America/NEW_YORK] 행 0: 첫번째셀='', 전체내용=["","","","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 1: 첫번째셀='ROOMING LIST', 전체내용=["ROOMING LIST","","","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 헤더 행 발견 (행 1): ["ROOMING LIST","","","","","","","","","","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 2: 첫번째셀='A T T N', 전체내용=["A T T N","","","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 3: 첫번째셀='F R O M', 전체내용=["F R O M","","","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 4: 첫번째셀='행사코드', 전체내용=["\ud589\uc0ac\ucf54\ub4dc","","UPP3985-250603KE","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 5: 첫번째셀='인 솔 자', 전체내용=["\uc778 \uc194 \uc790","","\uc5c6\uc74c","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 6: 첫번째셀='출 력 일', 전체내용=["\ucd9c \ub825 \uc77c ","","2025-05-09 16:15:00","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 7: 첫번째셀='', 전체내용=["","","","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 8: 첫번째셀='Rm.No', 전체내용=["Rm.No","Mem.","\uac1d\uc2e4","\uc601\ubb38\uba85",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 9: 첫번째셀='', 전체내용=["","N","A","HYUN SEOHA",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 10: 첫번째셀='', 전체내용=["","Y","A","KIM HUNKYO",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 11: 첫번째셀='', 전체내용=["","N","A","KIM LOHAN",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 12: 첫번째셀='', 전체내용=["","Y","A","KIM DUK KI",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 13: 첫번째셀='', 전체내용=["","N","A","KIM HYEONG IK",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 14: 첫번째셀='', 전체내용=["","N","A","JUNG YEON JUNG",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 15: 첫번째셀='', 전체내용=["","Y","A","YOO SO JIN",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 16: 첫번째셀='', 전체내용=["","N","A","SEO JEONG WON",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 17: 첫번째셀='', 전체내용=["","N","A","SEO YUNSEO",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 18: 첫번째셀='', 전체내용=["","N","A","SEO JAEHYUNG",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 19: 첫번째셀='', 전체내용=["","Y","A","YEO KIDONG",""]
+[28-May-2025 15:01:59 America/NEW_YORK] DB에서 상품명 조회 성공: 참좋은단독 7박10일 시내,코치(화,목) - JFK
+[28-May-2025 15:01:59 America/NEW_YORK] 최종 투어 정보: {"product_code":"AEI057","tour_name":"\ucc38\uc88b\uc740\ub2e8\ub3c5 7\ubc1510\uc77c \uc2dc\ub0b4,\ucf54\uce58(\ud654,\ubaa9) - JFK","start_date":"","end_date":""}
+[28-May-2025 15:01:59 America/NEW_YORK] 헤더 발견 여부: YES
+[28-May-2025 15:01:59 America/NEW_YORK] 데이터 시작 행: 2
+[28-May-2025 15:01:59 America/NEW_YORK] 행 2 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:59 America/NEW_YORK] 행 3 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:59 America/NEW_YORK] 행 4 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:59 America/NEW_YORK] 행 5 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:59 America/NEW_YORK] 행 6 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:59 America/NEW_YORK] 최종 추출된 예약 데이터 개수: 0
+[28-May-2025 15:01:59 America/NEW_YORK] 추출된 예약 데이터 개수: 0
+[28-May-2025 15:01:59 America/NEW_YORK] 시트 1 행 개수: 16
+[28-May-2025 15:01:59 America/NEW_YORK] 첫 5행 내용: [["ROOMING LIST","","","","","","","","","","",""],["A T T N","","","","","","","","","","",""],["F R O M","","","","","","","","","","",""],["\ud589\uc0ac\ucf54\ub4dc","","UPP3986-250606YP","","","","\ud589 \uc0ac \uba85","","[\uc2e4\uc2dc\uac04\ud56d\uacf5\/\ud018\ubca1\uc219\ubc15&\ubcf4\uc2a4\ud134] \ubbf8\ub3d9\ubd80 \uce90\ub098\ub2e4 \ub098\uc774\uc544\uac00\ub77c 10\uc77c","","",""],["\uc778 \uc194 \uc790","","\uc5c6\uc74c","","","","\uae30\u00a0\u00a0\u00a0\u00a0\uac04","","2025-06-06 (YP131 ) ~ 2025-06-15 (YP132 ) \/ 10\uc77c\uac04","","",""]]
+[28-May-2025 15:01:59 America/NEW_YORK] 데이터 추출 시작 - 초기 상품코드: AEI057, 전체 행 수: 16
+[28-May-2025 15:01:59 America/NEW_YORK] 행 0: 첫번째셀='ROOMING LIST', 전체내용=["ROOMING LIST","","","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 헤더 행 발견 (행 0): ["ROOMING LIST","","","","","","","","","","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 1: 첫번째셀='A T T N', 전체내용=["A T T N","","","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 2: 첫번째셀='F R O M', 전체내용=["F R O M","","","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 3: 첫번째셀='행사코드', 전체내용=["\ud589\uc0ac\ucf54\ub4dc","","UPP3986-250606YP","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 4: 첫번째셀='인 솔 자', 전체내용=["\uc778 \uc194 \uc790","","\uc5c6\uc74c","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 5: 첫번째셀='출 력 일', 전체내용=["\ucd9c \ub825 \uc77c ","","2025-05-09 16:16:00","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 6: 첫번째셀='', 전체내용=["","","","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 7: 첫번째셀='Rm.No', 전체내용=["Rm.No","Mem.","\uac1d\uc2e4","\uc601\ubb38\uba85",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 8: 첫번째셀='', 전체내용=["","Y","A","BAIK SEUNG MEE",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 9: 첫번째셀='', 전체내용=["","Y","A","CHUNG BONG EUN",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 10: 첫번째셀='', 전체내용=["","","","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 11: 첫번째셀='총 고객수', 전체내용=["\ucd1d \uace0\uac1d\uc218","","","","2 \uba85"]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 12: 첫번째셀='객 실 수', 전체내용=["\uac1d \uc2e4 \uc218","","Single","",0]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 13: 첫번째셀='', 전체내용=["","","Twin","",1]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 14: 첫번째셀='', 전체내용=["","","Triple","",0]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 15: 첫번째셀='M E M O', 전체내용=["M E M O","","","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] DB에서 상품명 조회 성공: 참좋은단독 7박10일 시내,코치(화,목) - JFK
+[28-May-2025 15:01:59 America/NEW_YORK] 최종 투어 정보: {"product_code":"AEI057","tour_name":"\ucc38\uc88b\uc740\ub2e8\ub3c5 7\ubc1510\uc77c \uc2dc\ub0b4,\ucf54\uce58(\ud654,\ubaa9) - JFK","start_date":"","end_date":""}
+[28-May-2025 15:01:59 America/NEW_YORK] 헤더 발견 여부: YES
+[28-May-2025 15:01:59 America/NEW_YORK] 데이터 시작 행: 1
+[28-May-2025 15:01:59 America/NEW_YORK] 행 1 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:59 America/NEW_YORK] 행 2 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:59 America/NEW_YORK] 행 3 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:59 America/NEW_YORK] 행 4 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:59 America/NEW_YORK] 행 5 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:59 America/NEW_YORK] 최종 추출된 예약 데이터 개수: 0
+[28-May-2025 15:01:59 America/NEW_YORK] 추출된 예약 데이터 개수: 0
+[28-May-2025 15:01:59 America/NEW_YORK] 시트 2 행 개수: 18
+[28-May-2025 15:01:59 America/NEW_YORK] 첫 5행 내용: [["","","","","","","","","","","",""],["ROOMING LIST","","","","","","","","","","",""],["A T T N","","","","","","","","","","",""],["F R O M","","","","","","","","","","",""],["\ud589\uc0ac\ucf54\ub4dc","","UPP3986-250606FRI","","","","\ud589 \uc0ac \uba85","","[\uc2e4\uc2dc\uac04\ud56d\uacf5\/\ud018\ubca1\uc219\ubc15&\ubcf4\uc2a4\ud134] \ubbf8\ub3d9\ubd80 \uce90\ub098\ub2e4 \ub098\uc774\uc544\uac00\ub77c 10\uc77c","","",""]]
+[28-May-2025 15:01:59 America/NEW_YORK] 데이터 추출 시작 - 초기 상품코드: AEI057, 전체 행 수: 18
+[28-May-2025 15:01:59 America/NEW_YORK] 행 0: 첫번째셀='', 전체내용=["","","","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 1: 첫번째셀='ROOMING LIST', 전체내용=["ROOMING LIST","","","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 헤더 행 발견 (행 1): ["ROOMING LIST","","","","","","","","","","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 2: 첫번째셀='A T T N', 전체내용=["A T T N","","","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 3: 첫번째셀='F R O M', 전체내용=["F R O M","","","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 4: 첫번째셀='행사코드', 전체내용=["\ud589\uc0ac\ucf54\ub4dc","","UPP3986-250606FRI","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 5: 첫번째셀='인 솔 자', 전체내용=["\uc778 \uc194 \uc790","","\uc5c6\uc74c","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 6: 첫번째셀='출 력 일', 전체내용=["\ucd9c \ub825 \uc77c ","","2025-05-09 16:16:00","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 7: 첫번째셀='', 전체내용=["","","","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 8: 첫번째셀='Rm.No', 전체내용=["Rm.No","Mem.","\uac1d\uc2e4","\uc601\ubb38\uba85",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 9: 첫번째셀='', 전체내용=["","Y","A","LEE SANGHYUN",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 10: 첫번째셀='', 전체내용=["","N","A","YUN JUHEE",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 11: 첫번째셀='', 전체내용=["","N","A","LEE YUJUN",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 12: 첫번째셀='', 전체내용=["","","","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 13: 첫번째셀='총 고객수', 전체내용=["\ucd1d \uace0\uac1d\uc218","","","","3 \uba85"]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 14: 첫번째셀='객 실 수', 전체내용=["\uac1d \uc2e4 \uc218","","Single","",0]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 15: 첫번째셀='', 전체내용=["","","Twin","",0]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 16: 첫번째셀='', 전체내용=["","","Triple","",1]
+[28-May-2025 15:01:59 America/NEW_YORK] 행 17: 첫번째셀='M E M O', 전체내용=["M E M O","","\uc774;\uc0c1\ud604, \uc724\uc8fc\ud76c,\uc774\uc720\uc900\/1\ub8f8","",""]
+[28-May-2025 15:01:59 America/NEW_YORK] DB에서 상품명 조회 성공: 참좋은단독 7박10일 시내,코치(화,목) - JFK
+[28-May-2025 15:01:59 America/NEW_YORK] 최종 투어 정보: {"product_code":"AEI057","tour_name":"\ucc38\uc88b\uc740\ub2e8\ub3c5 7\ubc1510\uc77c \uc2dc\ub0b4,\ucf54\uce58(\ud654,\ubaa9) - JFK","start_date":"","end_date":""}
+[28-May-2025 15:01:59 America/NEW_YORK] 헤더 발견 여부: YES
+[28-May-2025 15:01:59 America/NEW_YORK] 데이터 시작 행: 2
+[28-May-2025 15:01:59 America/NEW_YORK] 행 2 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:59 America/NEW_YORK] 행 3 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:59 America/NEW_YORK] 행 4 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:59 America/NEW_YORK] 행 5 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:59 America/NEW_YORK] 행 6 개인 데이터: {"korean_name":"","english_name":"","passport_number":"","birth_date":"","phone":"","email":"","gender":"","passport_expiry":"","room_type":"","room_number":"","sale_price":0,"pick_area":"","memo":""}
+[28-May-2025 15:01:59 America/NEW_YORK] 최종 추출된 예약 데이터 개수: 0
+[28-May-2025 15:01:59 America/NEW_YORK] 추출된 예약 데이터 개수: 0
+[28-May-2025 15:01:59 America/NEW_YORK] 전체 추출된 데이터 개수: 0
