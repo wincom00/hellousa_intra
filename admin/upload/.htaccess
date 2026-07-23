@@ -2,34 +2,14 @@
 # 업로드 폴더 스크립트 실행 차단 (웹쉘 방지)
 # 이 디렉토리에는 사용자 업로드 파일만 존재해야 하며,
 # PHP 등 어떤 서버 스크립트도 실행되어서는 안 된다.
+#
+# ※ FileInfo 클래스 지시어(SetHandler/ForceType)만 사용 → AllowOverride 500 위험 최소.
+#    mod_php(AddHandler·SetHandler)와 PHP-FPM(proxy handler) 양쪽 모두 실행 차단.
 # ※ Apache 전용. Nginx 환경은 server 블록에서 별도 차단 필요.
 # ============================================================
 
-# 1) mod_php 계열: PHP 엔진 자체를 끔 (.htaccess 문맥은 php_flag 사용)
-<IfModule mod_php.c>
-    php_flag engine off
-</IfModule>
-<IfModule mod_php5.c>
-    php_flag engine off
-</IfModule>
-<IfModule mod_php7.c>
-    php_flag engine off
-</IfModule>
-<IfModule mod_php8.c>
-    php_flag engine off
-</IfModule>
-
-# 2) PHP-FPM/CGI 등 php_flag가 적용되지 않는 환경: 핸들러/타입 제거
-RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .pht .phps
-RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .pht .phps
-
-# 3) 스크립트성 파일 접근 자체를 거부 (Apache 2.4 / 2.2 모두 대응)
-<FilesMatch "(?i)\.(php|phps|phtml|php[0-9]|phar|pht|cgi|pl|py|sh|asp|aspx|jsp|htaccess)$">
-    <IfModule mod_authz_core.c>
-        Require all denied
-    </IfModule>
-    <IfModule !mod_authz_core.c>
-        Order allow,deny
-        Deny from all
-    </IfModule>
+# 스크립트성 파일: 핸들러 제거 + 평문(text/plain)으로 강제 → 실행되지 않음
+<FilesMatch "(?i)\.(php|phps|phtml|php[0-9]|phar|pht|cgi|pl|py|sh|asp|aspx|jsp)$">
+    SetHandler none
+    ForceType text/plain
 </FilesMatch>

@@ -64,7 +64,22 @@ if (!move_uploaded_file($file['tmp_name'], $target)) {
 @chmod($target, 0644);
 
 // 7) CKEditor 호환 응답
-$url = 'https://www.myhello.info/admin/upload/' . $safeName;
+//    접속한 도메인(로컬/라이브)에 맞춰 절대 URL 생성 → 어느 환경에서든 이미지 로드 가능.
+//    - 프록시/로드밸런서 HTTPS 종단(X-Forwarded-Proto)도 반영
+//    - Host 헤더 인젝션 방지: 유효한 host 문자만 허용, 아니면 운영 도메인으로 폴백
+$scheme = 'http';
+if ((!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') ||
+    (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https') ||
+    (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443)) {
+    $scheme = 'https';
+}
+$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'myhello.info';
+if (!preg_match('/^[a-zA-Z0-9.\-:]+$/', $host)) { $host = 'myhello.info'; }
+
+// 현재 스크립트(/…/admin/upload.php) 기준 디렉토리 → 서브디렉토리 설치도 대응
+$baseDir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
+$url = $scheme . '://' . $host . $baseDir . '/upload/' . $safeName;
+
 echo json_encode(array(
     'fileName' => $safeName,
     'uploaded' => 1,
