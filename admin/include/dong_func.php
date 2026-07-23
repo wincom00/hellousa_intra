@@ -2843,7 +2843,7 @@
 	 * 정산보고완료시 정산완료
 
 	 */
-	 function getGuideStatus($grand_eCode,$sub_eCode,$stDate){
+	 function getGuideStatus($grand_eCode,$sub_eCode,$stDate=''){
 
 		global $dbConn;
 
