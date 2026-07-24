@@ -95,6 +95,12 @@ function gsa_fetch_period_safe($pCode, $stDate)
     return $stDate . ' ~ ' . date('Y-m-d', strtotime($stDate . ' +' . $pDay . ' day'));
 }
 
+/**
+ * Generate status badge info from HTML status string.
+ *
+ * @param string $statusHtml HTML content containing status text
+ * @return array{label:string, class:string}
+ */
 function gsa_status_badge($statusHtml)
 {
     $label = trim(strip_tags(str_replace(array('<br>', '<br/>', '<br />'), ' ', (string)$statusHtml)));
