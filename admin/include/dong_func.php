@@ -30,7 +30,7 @@
 			$row1 = $rst1->fetch_assoc();
 			
 			return $row1;
-	}
+   }
 	function pickBaseCode2($code = false) {
 			
 		global $dbConn;
@@ -60,7 +60,7 @@
 
 	}
 	//호텔별 정산 행사기간
-      function getPeriodbyhotel($p_code,$stDate){
+    function getPeriodbyhotel($p_code,$stDate){
 
           global $dbConn;
 
