@@ -2805,16 +2805,30 @@
 				return $row1;
 
 	}
+	// 정산마스터가 한 행사(grand_eCode+sub_eCode)에 중복 존재할 수 있어,
+	// '가장 확정된' 1건을 고르는 정렬식을 한 곳에서 관리한다.
+	// 우선순위: 대표이사확인 > 회계확인 > 정산보고완료 > 보고일자존재 > 최신seq_no
+	// (getGuideCode / getGuideStatus / guide_settle.php 목록 / guide_save.php 재사용이 모두 이 식을 사용)
+	function guideMasterPickOrderExpr(){
+		return "(CASE WHEN ceo_st <> '' THEN 1 ELSE 0 END) DESC,
+		  (CASE WHEN finance_st <> '' THEN 1 ELSE 0 END) DESC,
+		  (CASE WHEN reg_status = 'COMPLETE' THEN 1 ELSE 0 END) DESC,
+		  (CASE WHEN report_date IS NOT NULL AND report_date <> '0000-00-00 00:00:00' THEN 1 ELSE 0 END) DESC,
+		  seq_no DESC";
+	}
 	//가이드정산코드
 	function getGuideCode($grand_eCode,$sub_eCode){
         global $dbConn;
 
-		$query = "SELECT settle_code,finance_date,check_out,check_date,report_date FROM guide_setmaster WHERE grand_eCode = '$grand_eCode' AND sub_eCode = '$sub_eCode' ";
+		// 정산마스터가 중복 존재할 수 있으므로 '가장 확정된' 1건만 반환한다.
+		$query = "SELECT settle_code,finance_date,check_out,check_date,report_date FROM guide_setmaster WHERE grand_eCode = '$grand_eCode' AND sub_eCode = '$sub_eCode'
+		ORDER BY ".guideMasterPickOrderExpr()."
+		LIMIT 1";
 	    ///echo $query;
 		$rst1 = $dbConn->query($query);
-		
+
 		$row1 = $rst1->fetch_assoc();
-          
+
         return $row1;
 	}
 	//행사별 정산 행사기간
@@ -2854,7 +2868,10 @@
 		
 		if($data_row[cnt] >0) {
 			
-			$query = "SELECT * FROM guide_setmaster WHERE grand_eCode = '$grand_eCode' AND sub_eCode = '$sub_eCode' ";
+			// 정산마스터가 중복 존재할 수 있으므로 '가장 확정된' 1건 기준으로 상태를 판정한다.
+			$query = "SELECT * FROM guide_setmaster WHERE grand_eCode = '$grand_eCode' AND sub_eCode = '$sub_eCode'
+			ORDER BY ".guideMasterPickOrderExpr()."
+			LIMIT 1";
 			$rst1 = $dbConn->query($query);
 			$data_row = $rst1->fetch_assoc();
 

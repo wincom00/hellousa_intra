@@ -34,10 +34,23 @@
       $guide_etcamt = $_POST['guideEtcDepAmount'];
       $userid = $user_dbinfo['userid'];
       
-      $settle_code_p = $_POST['settle_code'];
+      // settle_code 미전송(unset)·NULL·공백 모두 '빈 값'으로 정규화 (아래 === '' 비교/재사용 판단용)
+      $settle_code_p = trim((string)($_POST['settle_code'] ?? ''));
 
        if($_POST['mode'] =='save') {
 
+            // [중복방지] 폼에서 settle_code가 비어 넘어오더라도, 해당 행사(grand_eCode+sub_eCode)에
+            // 이미 정산마스터가 있으면 그 코드를 재사용한다. 재사용하면 아래 DELETE(by settle_code)가
+            // 기존 마스터를 정상 삭제 후 재INSERT 하므로 한 행사에 마스터가 2개 생기지 않는다.
+            // 읽기 경로(getGuideCode/목록/상태)와 '동일한' 확정본 우선 기준으로 재사용 대상을 고른다.
+            // (정렬식이 어긋나면 저장한 마스터와 화면에 표시/오픈되는 마스터가 달라질 수 있음)
+            if ($settle_code_p === '') {
+                $chkQ = "SELECT settle_code FROM guide_setmaster WHERE grand_eCode = '$grand_eCode' AND sub_eCode = '$sub_eCode' ORDER BY ".guideMasterPickOrderExpr()." LIMIT 1";
+                $chkRst = mysqli_query($dbConn, $chkQ);
+                if ($chkRst && ($chkRow = mysqli_fetch_assoc($chkRst)) && $chkRow['settle_code'] !== '') {
+                    $settle_code_p = $chkRow['settle_code'];
+                }
+            }
 
             $guide_code = $settle_code_p !== '' ? $settle_code_p : 'GU-' . date('His') . sprintf('%02d', (int)(microtime(true) * 100) % 100);
 

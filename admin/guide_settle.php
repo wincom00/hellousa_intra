@@ -122,7 +122,22 @@
 			gsm.settle_code, gsm.finance_date, gsm.report_date, gsm.check_out, gsm.check_date,
 			ml.kor_name
 		  FROM tour_guide a
-		  LEFT JOIN guide_setmaster gsm
+		  LEFT JOIN (
+			-- 한 행사(grand_eCode+sub_eCode)에 정산마스터가 중복 존재해도
+			-- '가장 확정된' 1건만 사용해 목록 행 중복(뻥튀기)을 방지한다.
+			-- 우선순위: 대표이사확인 > 회계확인 > 정산보고완료 > 보고일자존재 > 최신seq_no
+			SELECT gm.*
+			  FROM guide_setmaster gm
+			  INNER JOIN (
+				SELECT grand_eCode, sub_eCode,
+				  SUBSTRING_INDEX(GROUP_CONCAT(seq_no ORDER BY ".guideMasterPickOrderExpr()."), ',', 1) AS pick_seq
+				  FROM guide_setmaster
+				 GROUP BY grand_eCode, sub_eCode
+			  ) gmx
+				ON gmx.grand_eCode = gm.grand_eCode
+			   AND gmx.sub_eCode   = gm.sub_eCode
+			   AND gmx.pick_seq    = gm.seq_no
+		  ) gsm
 			ON gsm.grand_eCode = a.grand_eCode
 		   AND gsm.sub_eCode   = a.sub_eCode
 		  LEFT JOIN member_list ml

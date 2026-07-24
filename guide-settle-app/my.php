@@ -136,6 +136,25 @@ function gsa_my_fetch_rows($search, $userId, $chipFilter = '')
     }
 
     $whereSql = 'WHERE ' . implode(' AND ', $conds);
+
+    // 한 행사(grand_eCode+sub_eCode)에 정산마스터가 중복 존재해도 '가장 확정된' 1건만 조인해
+    // 목록 행이 중복(뻥튀기)되지 않게 한다. (admin/guide_settle.php 와 동일 기준)
+    $gsmJoin = "LEFT JOIN (
+                    SELECT gm.*
+                    FROM guide_setmaster gm
+                    INNER JOIN (
+                        SELECT grand_eCode, sub_eCode,
+                            SUBSTRING_INDEX(GROUP_CONCAT(seq_no ORDER BY " . guideMasterPickOrderExpr() . "), ',', 1) AS pick_seq
+                        FROM guide_setmaster
+                        GROUP BY grand_eCode, sub_eCode
+                    ) gmx
+                        ON gmx.grand_eCode = gm.grand_eCode
+                       AND gmx.sub_eCode = gm.sub_eCode
+                       AND gmx.pick_seq = gm.seq_no
+                ) gsm
+                    ON gsm.grand_eCode = a.grand_eCode
+                   AND gsm.sub_eCode = a.sub_eCode";
+
     $sql = "SELECT
                 a.seq_no,
                 a.grand_eCode,
@@ -153,9 +172,7 @@ function gsa_my_fetch_rows($search, $userId, $chipFilter = '')
                 gsm.finance_st,
                 ml.kor_name
             FROM tour_guide a
-            LEFT JOIN guide_setmaster gsm
-              ON gsm.grand_eCode = a.grand_eCode
-             AND gsm.sub_eCode = a.sub_eCode
+            {$gsmJoin}
             LEFT JOIN member_list ml
               ON ml.userid = a.guide_id
             {$whereSql}
