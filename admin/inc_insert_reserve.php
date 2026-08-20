@@ -1125,6 +1125,39 @@
 				//발란스계산
 				//echo $order_status;
 				//exit;
+				if ($order_status == "DONE") {
+					$toReservationAmount = function ($value) {
+						return (float)str_replace(',', '', (string)$value);
+					};
+					$ttamt = 0;
+					$ttotaddamt = 0;
+					$ttotdis = 0;
+					$optionTotal = 0;
+					$airTotal = 0;
+
+					foreach (isset($unitPrice) ? (array)$unitPrice : array() as $i => $value) {
+						$saleAmount = $toReservationAmount($value);
+						$addAmount = $toReservationAmount(isset($addamt[$i]) ? $addamt[$i] : 0);
+						$discountAmount = $toReservationAmount(isset($disamt[$i]) ? $disamt[$i] : 0);
+						$ttamt += $saleAmount;
+						$ttotaddamt += $addAmount;
+						$ttotdis += $discountAmount;
+						$lasttamt[$i] = number_format($saleAmount + $addAmount - $discountAmount, 2, '.', '');
+					}
+					foreach (isset($optamt) ? (array)$optamt : array() as $i => $value) {
+						if (isset($optnm[$i]) && $optnm[$i] != '') {
+							$optionTotal += $toReservationAmount($value);
+						}
+					}
+					foreach (isset($a_airline_amt) ? (array)$a_airline_amt : array() as $value) {
+						$airTotal += $toReservationAmount($value);
+					}
+
+					$ttamt = number_format($ttamt, 2, '.', '');
+					$ttotaddamt = number_format($ttotaddamt, 2, '.', '');
+					$ttotdis = number_format($ttotdis, 2, '.', '');
+					$tgtotamt = number_format($ttamt + $ttotaddamt + $airTotal + $optionTotal - $ttotdis, 2, '.', '');
+				}
 				
 				$qry6= "update payment_history 
 									set
@@ -1136,6 +1169,9 @@
 							
 			    $rst6 = $dbConn->query($qry6);
 
+				$rtnamt = 0;
+				$ttotamt1 = 0;
+				$totpay = 0;
 				$qryp = "select * from payment_history where reserveCode = '$estimateCode' && (payment_status='DONE' || payment_status='RETURN')";
 				$rstp = $dbConn->query($qryp);
 				while($rowp = $rstp->fetch_assoc()){
@@ -1147,11 +1183,10 @@
 					 		$ttotamt1 = $ttotamt1 + $rowp[payment];
 					  }
 					  
-					  $totpay = $ttotamt1 - $rtnamt;
-					  
-
 	            }
-				$totbal2 =$tbalamt;//$tgtotamt - $totpay;
+				$totpay = $ttotamt1 - $rtnamt;
+				$totbal2 = round($tgtotamt - $totpay, 2);
+				$tbalamt = $totbal2;
 				
 				if ($paystatus != "CGPAY") {
 				  if ($paystatus != "GPAY") {

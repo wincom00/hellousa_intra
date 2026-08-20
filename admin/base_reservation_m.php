@@ -1675,7 +1675,7 @@
 										
 											<?=optBaseCode4('',$pcode,'')?>
 										</select>
-										<input type="text"  name='optamttemp' id='optamttemp' class="form-control text-right js-opttemp" value="0" style="width:200px;"/>
+										<input type="text"  name='optamttemp' id='optamttemp' class="form-control text-right js-opttemp" value="0" style="width:200px;" readonly/>
 										
 										<button type="button" class="btn btn-default btn-xs js-batch">일괄옵션복사</button>
 									</div>
@@ -1709,7 +1709,7 @@
 								
 											<?=optBaseCode4($reserve_info[reserveCode],$opt_row[p_code],$opt_row[tnm])?>
 										</select>
-										<input type="text"  name='optamt[]' id='optamt' class="form-control text-right js-opt" value="<?php if (($opt_row[oprice])) {  echo $opt_row[oprice]; }  ?>"	/>
+										<input type="text"  name='optamt[]' id='optamt' class="form-control text-right js-opt" value="<?php if (($opt_row[oprice])) {  echo $opt_row[oprice]; }  ?>" readonly/>
 										<select class="form-control js-optamt" name="optnm[]" id="optnm">
 										   <optio0n value="">선택이름</option>
 										  <?php echo getReserveTrIn2($reserve_info[reserveCode],$opt_row['tnm']); ?>
@@ -1728,7 +1728,7 @@
 										
 											<?=optBaseCode4('',$pcode,'')?>
 										</select>
-										<input type="text"  name='optamt[]' id='optamt' class="form-control text-right js-opt" value="0"/>
+										<input type="text"  name='optamt[]' id='optamt' class="form-control text-right js-opt" value="0" readonly/>
 										<select class="form-control js-optamt" name="optnm[]" id="optnm" >
 										   <option value="">선택이름</option>
 										  <?php echo getReserveTrIn($reserve_info[reserveCode]); ?>
@@ -4272,7 +4272,7 @@
 							  "  	<select class='form-control  js-optLoc' style='width:200px;' name='optLoc"+currentIndex+"[]'  ID='optLoc"+currentIndex+"' multiple='multiple' data-live-search='true'>"+
 							"		<?=optBaseCode4('',$pcode,'')?>"+
 							"		</select>"+
-							"		<input type='text'  name='optamt[]' id='optamt' class='form-control text-right js-opt' value=''	/>"+
+							"		<input type='text'  name='optamt[]' id='optamt' class='form-control text-right js-opt' value='' readonly/>"+
 							"		<select class='form-control js-optamt' name='optnm[]' id='optnm'>"+
 							"		   <option value=''>선택이름</option>"+
 							"		  <?php echo getReserveTrIn2($reserve_info[reserveCode],$opt_row['tnm']); ?>"+
@@ -4376,7 +4376,7 @@
 									  "  	<select class='form-control  js-optLoc' style='width:200px;' name='optLoc"+currentIndex+"[]'  ID='optLoc"+currentIndex+"' multiple='multiple' data-live-search='true'>"+
 									"		"+optionsHtmlResponse+""+
 									"		</select>"+
-									"		<input type='text'  name='optamt[]' id='optamt' class='form-control text-right js-opt' value='"+$tmat.val()+"'	/>"+
+									"		<input type='text'  name='optamt[]' id='optamt' class='form-control text-right js-opt' value='"+$tmat.val()+"' readonly/>"+
 									"		<select class='form-control js-optamt' name='optnm[]' id='optnm'>"+
 									"		   <option value=''>선택이름</option>"+
 									"          <option value='"+name+"' selected>"+name+"</option>"+
@@ -4867,115 +4867,77 @@
 				}
 
 		}
+		function amountValue(value) {
+			return parseFloat(String(value == null ? '' : value).replace(/,/g, '')) || 0;
+		}
+
 		function calc(gu) {
 			var unitamt = 0;
 			var addamt = 0;
 			var disamt = 0;
-			var tamt1 = 0;
-			var tamt = 0;
 			var optamt= 0;
 			var p = 0;
-			$('input[name^="unitPrice"]').each(function() {
-              unitamt = unitamt +  parseFloat($(this).val())
-			  p++;  
-            });
-			var lastval= 0;
-			lastval =$('input[name^="unitPrice"]').last().val();
-			//alert(lastval);
-			$("#totamt").html('<?=$sign?> '+ unitamt);
-			$("#ttamt").val(unitamt);
-			$('input[name^="addamt"]').each(function() {
-              addamt = addamt +  parseFloat($(this).val())
-			 
-            });
-			$("#totaddamt").html('<?=$sign?> '+ addamt);
-			$("#ttotaddamt").val(addamt);
-			
-			$('input[name^="disamt"]').each(function() {
-              disamt = disamt +  parseFloat($(this).val())
-			    
-            });
-			$('input[name^="optamt"]').each(function() {
-			   optamt = optamt + parseFloat($(this).val());
-			   			  
-            });
-			$("#totdis").html('<?=$sign?> '+ disamt);
-			$("#ttotdis").val(disamt);
-			
-            $('input[name^="lasttamt"]').each(function() {
-             
-			  tamt1 = tamt1 +  parseFloat($(this).val())
-			    
-            });
+			$('input[name="unitPrice[]"]').each(function() {
+				var row = $(this).closest('.innertr');
+				var sale = amountValue($(this).val());
+				var additional = amountValue(row.find('input[name="addamt[]"]').val());
+				var discount = amountValue(row.find('input[name="disamt[]"]').val());
 
-			var airtot = $('input[name^="tot_air_amt"]').val();
-			var tttotamt = (unitamt+addamt+parseFloat(airtot)+optamt)-disamt;
+				unitamt += sale;
+				addamt += additional;
+				disamt += discount;
+				row.find('input[name="lasttamt[]"]').val((sale + additional - discount).toFixed(2));
+				p++;
+			});
+
+			$('.js-optSet').each(function() {
+				if ($(this).find('select[name="optnm[]"]').val()) {
+					optamt += amountValue($(this).find('input[name="optamt[]"]').val());
+				}
+			});
+
+			var airtot = amountValue($('input[name^="tot_air_amt"]').val());
+			var tttotamt = unitamt + addamt + airtot + optamt - disamt;
+			$("#totamt").html('<?=$sign?> '+ unitamt.toFixed(2));
+			$("#ttamt").val(unitamt.toFixed(2));
+			$("#totaddamt").html('<?=$sign?> '+ addamt.toFixed(2));
+			$("#ttotaddamt").val(addamt.toFixed(2));
+			$("#totdis").html('<?=$sign?> '+ disamt.toFixed(2));
+			$("#ttotdis").val(disamt.toFixed(2));
 			$("#totoamt").html('<?=$sign?> '+ optamt.toFixed(2));
-			//alert(tttotamt);
+			$("#otamt").val(optamt.toFixed(2));
 			$("#gtotamt").html('<?=$sign?> '+ tttotamt.toFixed(2));
-			$("#tgtotamt").val(tttotamt);
-			$("#baltype").val("");
+			$("#tgtotamt").val(tttotamt.toFixed(2));
 			$("#pcnt1").val(p);
 			
 			$("#balamt").html("");
-		    $("#balamt").html("$ "+tttotamt.toFixed(2));
+		    $("#balamt").html('<?=$sign?> '+tttotamt.toFixed(2));
 		    $('input[name^="tbalamt"]').val(tttotamt.toFixed(2));
 		    $("#baltype").val("1");
 
-			var bal =0;
 			var code1 = '<?=$estimateCode?>';
-			$.getJSON("get_bal.php?code1="+code1+"&lastval="+disamt+"&lastval2="+addamt+"&unitamt="+unitamt+"&airamt="+airtot+"&optamt="+optamt	, function(jsonData){
+			if (!code1) {
+				return;
+			}
+			$.getJSON("get_bal.php", {
+				code1: code1,
+				lastval: disamt,
+				lastval2: addamt,
+				unitamt: unitamt,
+				airamt: airtot,
+				optamt: optamt
+			}, function(jsonData){
 	 
 				 $.each(jsonData, function(i,data){
-					  var unittamt  =parseFloat($("#ttamt").val());
-					  var alltot = parseFloat($("#tgtotamt").val());
-					  var baltmp = parseFloat(data.last_bal);
-					  var lastdiff = alltot.toFixed(2) - baltmp.toFixed(2);
-					  //alert(alltot);
-					  //lert(baltmp);
-					  //alert(lastdiff);
-					  if ((lastdiff == 0) || (baltmp <0)) {
-						  if ((baltmp <0)) {
-							  var bamt0 =  '<font color=red><?=$sign?> '+baltmp+ '</font>';  //발란스
-							  var bamt =  baltmp;  //발란스
-						  } else {
-							  var bamt0 =  '<?=$sign?> '+ baltmp;  //발란스
-							  var bamt =  baltmp;  //발란스
-						  }
-					  } else if (lastdiff < 0) {
-						  var bamt0 =  '<font color=red><?=$sign?> '+lastdiff+ '</font>';  //발란스
-						  var bamt =  lastdiff;  //발란스
-					  } else {
-						  var bamt0 =  '<?=$sign?> '+ baltmp;  //발란스
-						  var bamt =  baltmp;  //발란스
-					  }
-					  if (unittamt == 0)
-					  {
-						  //alert(alltot);
-						  var bamt0 =  '<?=$sign?> '+baltmp;  //발란스
-						  var bamt =  baltmp;  //발란스
-					  }
-					  $("#balamt").html("");
-					  $("#balamt").html(bamt0);
-					  $('input[name^="tbalamt"]').val(bamt);
+					  var balance = amountValue(data.last_bal);
+					  var balanceText = '<?=$sign?> ' + balance.toFixed(2);
+					  $("#balamt").html(balance < 0 ? '<font color="red">' + balanceText + '</font>' : balanceText);
+					  $('input[name^="tbalamt"]').val(balance.toFixed(2));
 					  $("#baltype").val("1");
 
 				 });
 				  
 			});
-			if ($("#baltype").val() =="")
-			{
-			
-				ttbalamt = parseFloat(unitamt);
-				 
-				
-				$("#balamt").html("");
-				$("#balamt").html('<?=$sign?> '+ ttbalamt);
-				$('input[name^="tbalamt"]').val(ttbalamt);
-		
-            }
-			  
-
 		}
 
 		
@@ -5131,10 +5093,10 @@
 						$("#r_email").focus();
 						return ;
 				  }
-				  aircalc_ticket();
 				  if(confirm("예약확정을 하시겠습니까?") == true)
 				  {
 					   $("#order_status").val("DONE");
+					   aircalc_ticket();
 					   $("#frmreserve").submit();
 				  }
 				  else return;
@@ -5299,26 +5261,27 @@
 			var totairamt = 0;
             for (var i=0; i < cntpnr ; i++ )
             {
-				air_rate=$('input[name^="air_rate"]').eq(i).val();
-				airtax=$('input[name^="airtax"]').eq(i).val();
-				airmco=$('input[name^="airmco"]').eq(i).val();
-				mcofee=$('input[name^="mcofee"]').eq(i).val();
-				a_cms=$('input[name^="a_cms"]').eq(i).val();
-				a_amt=$('input[name^="a_amt"]').eq(i).val();
-				a_airline_amt=$('input[name^="a_airline_amt"]').eq(i).val();
-				a_airport_cnt=$('input[name^="air_p"]').eq(i).val();
+				air_rate=amountValue($('input[name^="air_rate"]').eq(i).val());
+				airtax=amountValue($('input[name^="airtax"]').eq(i).val());
+				airmco=amountValue($('input[name^="airmco"]').eq(i).val());
+				mcofee=amountValue($('input[name^="mcofee"]').eq(i).val());
+				a_cms=amountValue($('input[name^="a_cms"]').eq(i).val());
+				a_amt=amountValue($('input[name^="a_amt"]').eq(i).val());
+				a_airline_amt=amountValue($('input[name^="a_airline_amt"]').eq(i).val());
+				a_airport_cnt=parseInt($('input[name^="air_p"]').eq(i).val(), 10) || 0;
 				tmpMfee = airmco *(0.035);
 				//var amttmp = a_airport_cnt * (parseFloat(air_rate) + parseFloat(airtax) + parseFloat(tmpMfee)) - (a_cms/100);
-				var amttmp = parseInt(a_airport_cnt) * (parseFloat(air_rate) + parseFloat(airtax) + parseFloat(tmpMfee) - ((air_rate*(Act/100))+((air_rate-(air_rate*(Act/100)))*(a_cms/100))));
+				var amttmp = a_airport_cnt * (air_rate + airtax + tmpMfee - ((air_rate*(Act/100))+((air_rate-(air_rate*(Act/100)))*(a_cms/100))));
 				
 				$('input[name^="mcofee"]').eq(i).val(tmpMfee.toFixed(2));
 				$('input[name^="a_amt"]').eq(i).val(amttmp.toFixed(2));
-				amtprofit = parseFloat(a_airline_amt)- parseFloat(amttmp);
+				amtprofit = a_airline_amt - amttmp;
 				$('input[name^="a_air_amt"]').eq(i).val(amtprofit.toFixed(2));
-				totairamt = totairamt + parseFloat(a_airline_amt);
+				totairamt += a_airline_amt;
 			    
             } 
 			$('input[name^="tot_air_amt"]').val(totairamt.toFixed(2));
+			$('#totairdisplay').text(totairamt.toFixed(2));
 			//alert(totairamt);
 			calc(1);
 			

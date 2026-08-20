@@ -3,6 +3,13 @@
   include("include/inc_base.php");
     
   header("Content-Type: application/json");
+
+  $code1 = $dbConn->real_escape_string((string)$code1);
+  $unitamt = (float)str_replace(',', '', (string)$unitamt);
+  $lastval = (float)str_replace(',', '', (string)$lastval);
+  $lastval2 = (float)str_replace(',', '', (string)$lastval2);
+  $airamt = (float)str_replace(',', '', (string)$airamt);
+  $optamt = (float)str_replace(',', '', (string)$optamt);
   
   
   $qry1 = "select last_sale,last_total,last_bal from reserve_info where reserveCode='$code1' && parent='MAIN'";
@@ -22,6 +29,8 @@
 				$totamt = ($unitamt+$lastval2)-$lastval;
 		 }
 		 */
+		 $rtnamt = 0;
+		 $ttotamt1 = 0;
 		 $qryp = "select * from payment_history where reserveCode = '$code1' && (payment_status='DONE' || payment_status='RETURN')";
 		 $rstp = $dbConn->query($qryp);
 		 while($rowp = $rstp->fetch_assoc()){

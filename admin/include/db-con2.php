@@ -6,9 +6,9 @@
 
     include 'dbclass.php';
 
-    $dbhost = '74.208.228.155';
-    $dbuser = 'wincom00';
-    $dbpass = 'lee10011!!';
+    $dbhost = '127.0.0.1';
+    $dbuser = 'root';
+    $dbpass = '';
     $dbname = 'parandb';
     $today = date("Y-m-d H:i:s");
 
