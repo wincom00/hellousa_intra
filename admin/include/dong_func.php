@@ -43,7 +43,7 @@
 		while($row1 = $rst1->fetch_assoc()){
 			
 			
-			$selectValueInput = $row1[pick_code];
+			$selectValueInput = $row1['pick_code'];
 				
 			if($selectValueInput == $code)
 			{
@@ -71,8 +71,8 @@
           AND ( rev_status!='CANCEL' AND rev_status!='WAIT') LIMIT 1";
           $rst1 = $dbConn->query($query);
           $data_row = mysqli_fetch_assoc($rst1);
-          $data_row[p_day] = $data_row[p_day]-1;
-          $c_day = '+'.$data_row[p_day].' day';
+          $data_row['p_day'] = $data_row['p_day']-1;
+          $c_day = '+'.$data_row['p_day'].' day';
           $period = $stDate."~".date( "Y-m-d", strtotime( "$stDate $c_day" ));
 
           return $period;
@@ -166,8 +166,8 @@
 		while($row1 = $rst1->fetch_assoc()){
 			
 			
-			$selectValue = $row1[lvcode1].$row1[lvcode2];
-			$selectValueInput = $row1[lvcode1].$row1[lvcode2].$row1[lvcode3];
+			$selectValue = $row1['lvcode1'].$row1['lvcode2'];
+			$selectValueInput = $row1['lvcode1'].$row1['lvcode2'].$row1['lvcode3'];
 				
 			if($selectValueInput == $code)
 			{
@@ -244,8 +244,8 @@
 		//echo $code;
 		while($row1 = $rst1->fetch_assoc()){
 			
-			$selectValue = $row1[lvcode1].$row1[lvcode2];
-			$selectValueInput = $row1[lvcode1].$row1[lvcode2].$row1[lvcode3];
+			$selectValue = $row1['lvcode1'].$row1['lvcode2'];
+			$selectValueInput = $row1['lvcode1'].$row1['lvcode2'].$row1['lvcode3'];
 				
 			if($selectValueInput == $code)
 			{
@@ -271,8 +271,8 @@
 		//echo $code;
 		while($row1 = $rst1->fetch_assoc()){
 			
-			$selectValue = $row1[lvcode1].$row1[lvcode2];
-			$selectValueInput = $row1[lvcode1].$row1[lvcode2].$row1[lvcode3];
+			$selectValue = $row1['lvcode1'].$row1['lvcode2'];
+			$selectValueInput = $row1['lvcode1'].$row1['lvcode2'].$row1['lvcode3'];
 				
 			if($selectValueInput == $code)
 			{
@@ -300,8 +300,8 @@
 		///exit;
 		while($row1 = $rst1->fetch_assoc()){
 			
-			$selectValue = $row1[lvcode1].$row1[lvcode2];
-			$selectValueInput = $row1[lvcode1].$row1[lvcode2].$row1[lvcode3].$row1[lvcode4];
+			$selectValue = $row1['lvcode1'].$row1['lvcode2'];
+			$selectValueInput = $row1['lvcode1'].$row1['lvcode2'].$row1['lvcode3'].$row1['lvcode4'];
 			//echo 	$selectValueInput."||".$code."<br>";
 			if($selectValueInput == $code)
 			{
@@ -327,7 +327,7 @@
 		
 		while($row1 = $rst1->fetch_assoc()){
 			
-			$selectValueInput = $row1[lvcode1].$row1[lvcode2].$row1[lvcode3];
+			$selectValueInput = $row1['lvcode1'].$row1['lvcode2'].$row1['lvcode3'];
 		
 			$option.= "<option value=$selectValueInput >$row1[comment]";
 	
@@ -356,7 +356,7 @@
 		
 		   while($row1 = $rst1->fetch_assoc()){
 				
-				$hinfo=getHotelfInfo21($row1[hotel_code]);
+				$hinfo=getHotelfInfo21($row1['hotel_code']);
 				
 				$content .= "$hinfo[h_name] : $row1[cnt]개<br>";
 						
@@ -397,7 +397,7 @@
 
 			while($row1 = $rst1->fetch_assoc()){
 				
-				$selectValueInput = $row1[lvcode1].$row1[lvcode2].$row1[lvcode3];
+				$selectValueInput = $row1['lvcode1'].$row1['lvcode2'].$row1['lvcode3'];
 
 				if($pjCategory == $selectValueInput)
 				{
@@ -422,7 +422,7 @@
 		while($row1 = $rst1->fetch_assoc()){
 			
 			
-			$selectValueInput = $row1[pick_code];
+			$selectValueInput = $row1['pick_code'];
 				
 			if($selectValueInput == $code)
 			{
@@ -448,7 +448,7 @@
 		while($row1 = $rst1->fetch_assoc()){
 			
 			
-			$selectValueInput = $row1[pick_time];
+			$selectValueInput = $row1['pick_time'];
 				
 			if($selectValueInput == $picktt)
 			{
@@ -500,9 +500,9 @@
 
 		while($row1 = $rst1->fetch_assoc()){
 			
-			$company_area = codebaseName($row1[company_area]);
+			$company_area = codebaseName($row1['company_area']);
 
-			if($rand_id == $row1[userid])
+			if($rand_id == $row1['userid'])
 			{
 				$content .= "<option value='$row1[userid]' selected>[$company_area[comment]] $row1[kor_name] ($row1[userid])";
 			}
@@ -605,8 +605,8 @@
 			$numInt = "1";
 		}
 
-		$num[num] = $numInt;
-		$num[numChar] = $num1;
+		$num['num'] = $numInt;
+		$num['numChar'] = $num1;
 
 		return $num;
 	}
@@ -624,26 +624,26 @@
 		//exit;
 		while($row1 = $rst1->fetch_assoc()){
 			if ($ty !="5") {
-				$curcode =$row1[pick_code]."/".$row1[pick_time];
+				$curcode =$row1['pick_code']."/".$row1['pick_time'];
 				
 				if($prodseq == $curcode)
 				{
-					$content .= "<option value='$curcode' selected>".$row1[pick_name]." (.".$row1[pick_time].")";
+					$content .= "<option value='$curcode' selected>".$row1['pick_name']." (.".$row1['pick_time'].")";
 				}
 				else
 				{
-					$content .= "<option value='$curcode' >".$row1[pick_name]." (".$row1[pick_time].")";
+					$content .= "<option value='$curcode' >".$row1['pick_name']." (".$row1['pick_time'].")";
 				}
 			} else {
-				$curcode =$row1[pick_code];
+				$curcode =$row1['pick_code'];
 				
 				if($prodseq == $curcode)
 				{
-					$content .= "<option value='$curcode' selected>".$row1[pick_name]."";
+					$content .= "<option value='$curcode' selected>".$row1['pick_name']."";
 				}
 				else
 				{
-					$content .= "<option value='$curcode' >".$row1[pick_name]."";
+					$content .= "<option value='$curcode' >".$row1['pick_name']."";
 				}
 
 
@@ -664,8 +664,8 @@
 			
 			while($row1 = $rst1->fetch_assoc()){
 				
-				$selectValue = $row1[lvcode1].$row1[lvcode2];
-				$selectValueInput = $row1[lvcode1].$row1[lvcode2].$row1[lvcode3];
+				$selectValue = $row1['lvcode1'].$row1['lvcode2'];
+				$selectValueInput = $row1['lvcode1'].$row1['lvcode2'].$row1['lvcode3'];
 				
 				if($selectValueInput == $code)
 				{
@@ -691,8 +691,8 @@
 			
 			while($row1 = $rst1->fetch_assoc()){
 				
-				$selectValue = $row1[lvcode1].$row1[lvcode2];
-				$selectValueInput = $row1[lvcode1].$row1[lvcode2].$row1[lvcode3];
+				$selectValue = $row1['lvcode1'].$row1['lvcode2'];
+				$selectValueInput = $row1['lvcode1'].$row1['lvcode2'].$row1['lvcode3'];
 					
 				if($selectValueInput == $code)
 				{
@@ -719,8 +719,8 @@
 			//exit;
 			while($row1 = $rst1->fetch_assoc()){
 				
-				$selectValue = $row1[lvcode1].$row1[lvcode2];
-				$selectValueInput = $row1[lvcode1].$row1[lvcode2].$row1[lvcode3];
+				$selectValue = $row1['lvcode1'].$row1['lvcode2'];
+				$selectValueInput = $row1['lvcode1'].$row1['lvcode2'].$row1['lvcode3'];
 				//echo $code."<br />";	
 				if($selectValueInput == $code)
 				{
@@ -840,7 +840,7 @@
 				//echo $qry1;
 				while($row2 = $rst1->fetch_assoc()){
 					//echo $tnm."|".$row1[traveler_nm]."<br/>";
-			          if ($row2[traveler_nm] == $tnm) {
+			          if ($row2['traveler_nm'] == $tnm) {
 						  $content .= "<option value='$row2[traveler_nm]' selected />$row2[traveler_nm]</option>";
 			          } else  {
 						  $content .= "<option value='$row2[traveler_nm]'>$row2[traveler_nm]</option>";
@@ -884,7 +884,7 @@
 			$rst1 = $dbConn->query($qry1);
 			//echo $qry1;
 			while($row1 = $rst1->fetch_assoc()){
-				$selectValueInput = $row1[opt_code];
+				$selectValueInput = $row1['opt_code'];
 					
 				if($selectValueInput == $code)
 				{
@@ -1074,7 +1074,7 @@
 				
 				
 
-				if($code == $row1[p_code])
+				if($code == $row1['p_code'])
 				{
 					$content .= "<option value='$row1[p_code]' selected>$row1[p_name]";
 				}
@@ -1100,7 +1100,7 @@
 					
 					
 
-					if($code == $row1[p_code])
+					if($code == $row1['p_code'])
 					{
 						$content .= "<option value='$row1[p_code]' selected>$row1[p_name]";
 					}
@@ -1124,9 +1124,9 @@
 				$rst1 = $dbConn->query($qry1);
 				while($row1 = $rst1->fetch_assoc()){
 			
-					    $pickarr = explode("/",$row1[pick_area]);
+					    $pickarr = explode("/",$row1['pick_area']);
 						$picknm=pickBaseInfo($pickarr[0],$pickarr[1]);
-						if ($picknm[pick_time] =="") {
+						if ($picknm['pick_time'] =="") {
 							$picknm=pickBaseInfo2($pickarr[0]);
 							$content = "$picknm[pick_code]";
 						} else {
@@ -1164,9 +1164,9 @@
 
 				while($row1 = $rst1->fetch_assoc()){
 			
-					    $pickarr = explode("/",$row1[pick_area]);
+					    $pickarr = explode("/",$row1['pick_area']);
 						$picknm=pickBaseInfo($pickarr[0],$pickarr[1]);
-						if ($picknm[pick_name] != "") {
+						if ($picknm['pick_name'] != "") {
 						$content .= "$picknm[pick_name]-$picknm[pick_time] : $row1[cnt]인&nbsp;&nbsp;";
 						}
 					    
@@ -1277,7 +1277,7 @@
 					 $i++;
 					 //var_dump($row1);
 					 $g_dbinfo = getinfo_dbMemberg(trim($row1['guide_id']));
-					 $rstmsg .= $g_dbinfo[kor_name]."/";
+					 $rstmsg .= $g_dbinfo['kor_name']."/";
 					 
 
 				}
@@ -1297,9 +1297,9 @@
 
 				while($row1 = $rst1->fetch_assoc()){
 					
-					$company_area = codebaseName($row1[company_area]);
+					$company_area = codebaseName($row1['company_area']);
 
-					if($rand_id == $row1[userid])
+					if($rand_id == $row1['userid'])
 					{
 						$content .= "<option value='$row1[userid]' selected>[$company_area[comment]] $row1[kor_name] ($row1[userid])";
 					}
@@ -1323,9 +1323,9 @@
 
 				while($row1 = $rst1->fetch_assoc()){
 					
-					$company_area = codebaseName($row1[company_area]);
+					$company_area = codebaseName($row1['company_area']);
 
-					if($rand_id == $row1[userid])
+					if($rand_id == $row1['userid'])
 					{
 						$content .= "<option value='$row1[userid]' selected>[$company_area[comment]] $row1[kor_name] ($row1[userid])";
 					}
@@ -1355,7 +1355,7 @@
 		if($num1>0)
 		{
 			$row1 = $rst1->fetch_assoc();
-			$rNum = $row1[cnt]+1;
+			$rNum = $row1['cnt']+1;
 			if(strlen($rNum) == "1")
 			{
 				$num1 = "00".$rNum;
@@ -1706,7 +1706,7 @@
 		$rst2 = $dbConn->query($qry2);
 		$row2 = $rst2->fetch_assoc();
 		
-		$pay = $row1[pay1]-$row2[pay2];
+		$pay = $row1['pay1']-$row2['pay2'];
 		
 		return $pay;
 	}
@@ -1733,7 +1733,7 @@
 
 		while($row1 = $rst1->fetch_assoc()){
 			
-			if($h_code == $row1[h_code])
+			if($h_code == $row1['h_code'])
 			{
 				$content .= "<option value=$row1[h_code] selected>$row1[h_name]";
 			}
@@ -2205,7 +2205,7 @@
 				$rst1 = $dbConn->query($qry1);
 				while($row1 = $rst1->fetch_assoc()){
 			
-					    $pickarr = explode("/",$row1[picCode]);
+					    $pickarr = explode("/",$row1['picCode']);
 						$picknm=pickBaseInfo($pickarr[0],$pickarr[1]);
 						$content .= "$picknm[pick_name]-$picknm[pick_time] : $row1[cnt]개&nbsp;&nbsp;&nbsp;&nbsp;";
 					
@@ -2292,9 +2292,9 @@
 				$rst1 = $dbConn->query($qry1);
 				while($row1 = $rst1->fetch_assoc()){
 			
-					    $pickarr = explode("/",$row1[pick_area]);
+					    $pickarr = explode("/",$row1['pick_area']);
 						$picknm=pickBaseInfo($pickarr[0],$pickarr[1]);
-						if ($picknm[pick_time] =="") {
+						if ($picknm['pick_time'] =="") {
 							$picknm=pickBaseInfo2($pickarr[0]);
 							$content = "$pickarr[0]";
 						} else {
@@ -2319,7 +2319,7 @@
 				while($row1 = $rst1->fetch_assoc()){
 			
 					    
-						$picknm=codebaseName($row1[meet_area]);
+						$picknm=codebaseName($row1['meet_area']);
 						$content .= "$picknm[comment]";
 					
 					
@@ -2341,7 +2341,7 @@
 				while($row1 = $rst1->fetch_assoc()){
 			
 					    
-						$picknm=pickBaseCode4($row1[meet_area]);
+						$picknm=pickBaseCode4($row1['meet_area']);
 						$content = "$picknm[pick_name]";
 					
 					
@@ -2371,7 +2371,7 @@
 
 		while($row1 = $rst1->fetch_assoc()){
 			
-			if($p_code == $row1[p_code])
+			if($p_code == $row1['p_code'])
 			{
 				$content .= "<option value=$row1[p_code] selected>$row1[p_name]";
 			}
@@ -2394,7 +2394,7 @@
 			$rst1 = $dbConn->query($qry1);
 
 		    while($row1 = $rst1->fetch_assoc()) {
-					$pickarr = explode("/",$row1[picCode]);
+					$pickarr = explode("/",$row1['picCode']);
 					$picknm=pickBaseInfo($pickarr[0],$pickarr[1]);
 					$content .= "$picknm[pick_name]-$picknm[pick_time] : $row1[cnt]인&nbsp;&nbsp;&nbsp;&nbsp;";
 				
@@ -2477,7 +2477,7 @@
 
 	    while($row1 = $rst1->fetch_assoc()) {
 			
-			$content= $row1[pick_name];
+			$content= $row1['pick_name'];
 			
 		}
 
@@ -2496,7 +2496,7 @@
 
 		    while($row1 = $rst1->fetch_assoc()) {
 		
-					$pickarr = explode("/",$row1[pick_area]);
+					$pickarr = explode("/",$row1['pick_area']);
 					$picknm=pickBaseInfo($pickarr[0],$pickarr[1]);
 					$content .= "$picknm[pick_name]-$picknm[pick_time]<br /><br />";
 				
@@ -2536,7 +2536,7 @@
 			$rst1 = $dbConn->query($qry1);
             $i =1;
 		    while($row1 = $rst1->fetch_assoc()) {
-					$hinfo=getHotelfInfo21($row1[hotel_code]);
+					$hinfo=getHotelfInfo21($row1['hotel_code']);
 					
 					$content .= "$i 일차호텔 : $hinfo[h_name] <br />";
 					
@@ -2590,12 +2590,12 @@
 			$rst1 = $dbConn->query($qry1);
 
 		    while($row1 = $rst1->fetch_assoc()) {
-					if ($row1[sextype] == "man") {
+					if ($row1['sextype'] == "man") {
 						$sex= "남자";
-					} else if ($row1[sextype] == "female") {
+					} else if ($row1['sextype'] == "female") {
 						$sex = "여자";
 
-					} else if ($row1[sextype] == "mfemale") {
+					} else if ($row1['sextype'] == "mfemale") {
 						 $sex = "혼성";
 					}
 					$sexcc .= $sex."/";
@@ -2736,7 +2736,7 @@
 
 		while($row1 = $rst1->fetch_assoc()) {
 			
-			if($gid == $row1[userid])
+			if($gid == $row1['userid'])
 			{
 				$content .= "<option value='$row1[userid]' selected>$row1[kor_name] ($row1[userid])";
 			}
@@ -2843,8 +2843,8 @@
           AND ( rev_status!='CANCEL' AND rev_status!='WAIT') LIMIT 1";
           $rst1 = $dbConn->query($query);
 		  $data_row = $rst1->fetch_assoc();
-          $data_row[p_day] = $data_row[p_day]-1;
-          $c_day = '+'.$data_row[p_day].' day';
+          $data_row['p_day'] = $data_row['p_day']-1;
+          $c_day = '+'.$data_row['p_day'].' day';
           $period = $stDate." ~ ".date( "Y-m-d", strtotime( "$stDate $c_day" ));
 
           return $period;
@@ -2866,7 +2866,7 @@
 		$rst1 = $dbConn->query($query);
 		$data_row = $rst1->fetch_assoc();
 		
-		if($data_row[cnt] >0) {
+		if($data_row['cnt'] >0) {
 			
 			// 정산마스터가 중복 존재할 수 있으므로 '가장 확정된' 1건 기준으로 상태를 판정한다.
 			$query = "SELECT * FROM guide_setmaster WHERE grand_eCode = '$grand_eCode' AND sub_eCode = '$sub_eCode'
@@ -3109,9 +3109,9 @@
 
         while($row1 = $rst1->fetch_assoc()){
             
-            $company_area = codebaseName($row1[company_area]);
+            $company_area = codebaseName($row1['company_area']);
 
-            if($rand_id == $row1[userid])
+            if($rand_id == $row1['userid'])
             {
                 $content .= "<option value='$row1[userid]' selected>[$company_area[comment]] $row1[kor_name] ($row1[userid])";
             }
@@ -3145,7 +3145,7 @@
 			
 			while($row1 = $rst1->fetch_assoc()){
 				
-				$selectValue = $row1[userid];
+				$selectValue = $row1['userid'];
 				
 				if($selectValue == $userid)
 				{
@@ -3171,7 +3171,7 @@
 			
 			while($row1 = $rst1->fetch_assoc()){
 				
-				$selectValue = $row1[userid];
+				$selectValue = $row1['userid'];
 				
 				if($selectValue == $userid)
 				{
@@ -3255,7 +3255,7 @@
 			
 		while($row1 = $rst1->fetch_assoc()){
 			
-			if($employee_id == $row1[userid])
+			if($employee_id == $row1['userid'])
 			{
 				$content .= "<option value='$row1[userid]' selected> $row1[kor_name] ($row1[userid])";
 			}

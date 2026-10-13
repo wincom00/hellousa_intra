@@ -106,6 +106,45 @@
     div.dataTables_wrapper {
         margin: 0 auto;
     }
+    /* 차트 툴팁 - 가이드의 날짜별 행사 상세 */
+    #guideChartTip {
+        position: absolute;
+        display: none;
+        max-width: 560px;
+        padding: 8px 11px;
+        background: #111111;
+        color: #ffffff;
+        border-radius: 4px;
+        font-size: 11px;
+        line-height: 1.55;
+        z-index: 100000;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.45);
+        pointer-events: none;
+    }
+    #guideChartTip .gc-tip-h {
+        font-weight: 700;
+        margin-bottom: 5px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid #444444;
+    }
+    #guideChartTip .gc-tip-d {
+        color: #6db3f2;
+        font-weight: 700;
+        margin-right: 3px;
+    }
+    #guideChartTip .gc-hi {
+        color: #ffb02e;
+        font-weight: 700;
+    }
+
+    /* 차트 범례 - 상품명은 진하게 */
+    #chartLegend table { width: auto; }
+    #chartLegend .legendLabel {
+        color: #0b0b0b;
+        font-weight: 700;
+        padding: 0 12px 0 4px;
+        white-space: nowrap;
+    }
     .guide-tour-list {
         display: flex;
         flex-direction: column;
@@ -204,6 +243,21 @@
 						</table>
 					</form>
 					<br />
+					<div class="row">
+						<div class="col-sm-12">
+							<div class="panel panel-default">
+								<div class="panel-heading" style="padding:6px 10px;">
+									<b>가이드별 · 상품별 배정 건수</b>
+									<small class="text-muted">&nbsp;Assignments by guide &amp; product (<?=$StartYMD?> ~ <?=$EndYMD?>)</small>
+									<a href="javascript:void(0)" id="chartToggle" class="pull-right">접기/펴기</a>
+								</div>
+								<div class="panel-body" id="chartBody" style="padding:8px;">
+									<div id="chartLegend" style="font-size:11px;margin-bottom:6px;"></div>
+									<div id="guideChart" style="width:100%;"></div>
+								</div>
+							</div>
+						</div>
+					</div>
 					<div class="row" style="overflow:scroll;">
 						<div class="col-sm-12 tableFixHead" >
 						    <table id="guide_table" class="table table-striped table-bordered text-center ">
@@ -325,94 +379,112 @@
 
 	// --- Main Logic ---
 
+	$chartData = array();   // guide_id => ['name'=>, 'tours'=> tourId => pcnt]
+
+	// 컬럼 인덱스 <-> 날짜 매핑 (헤더와 동일한 순서)
+	$vDate2  = explode("-", $vDate);
+	$dayList = array();
+	for ($k = 0; $k < $totalDay; $k++) {
+		$dayList[$k] = date("Y-m-d", mktime(0, 0, 0, $vDate2[1], $vDate2[2] + $k, $vDate2[0]));
+	}
+	$dayIdx = array_flip($dayList);
+
+	$tourQry = "SELECT a.*, p.p_name, IFNULL(p.p_day,1) AS p_day
+				FROM tour_guide a
+				LEFT JOIN product_master p ON a.p_code = p.p_code
+				WHERE a.guide_id = ? AND a.stDate BETWEEN ? AND ?
+				AND EXISTS (
+					SELECT 1 FROM tour_car c
+					JOIN reserve_info r ON r.reserveCode = c.reserveCode AND r.p_code = c.p_code AND r.stDate = c.stDate
+					WHERE c.p_code = a.p_code AND c.stDate = a.stDate
+					AND c.grand_eCode = a.grand_eCode AND c.sub_eCode = a.sub_eCode
+					AND IFNULL(r.rev_status,'') NOT IN ('CANCEL','CANCE','CANEL')
+				)
+				ORDER BY a.stDate, a.bus_num ASC";
+
 	while ($zip_row1 = mysqli_fetch_assoc($zip_rst1)) {
     $guideId = $zip_row1['guide_id'];
     $guideName = htmlspecialchars($zip_row1['kor_name']);
     $content = "";
-    $activeTours = []; // KEY CHANGE: Store active tours and their end dates
 
-    for ($k = 0; $k < $totalDay; $k++) {
-        $vDate2 = explode("-", $vDate);
-        $choose_date = date("Y-m-d", mktime(0, 0, 0, $vDate2[1], $vDate2[2] + $k, $vDate2[0]));
+    // 기간 내 이 가이드의 배정을 한 번에 조회한다.
+    // (예전에는 날짜마다 조회하면서 다중일 행사의 colspan 만큼 날짜를 건너뛰어,
+    //  그 구간 안에서 시작하는 행사가 조회조차 되지 않고 사라졌다.)
+    $tours    = array();   // tourId => 행 정보
+    $dayTours = array();   // 컬럼 인덱스 => tourId 목록
 
-        // 1. Check for and remove completed tours
-        foreach ($activeTours as $tourId => $endDate) {
-            if ($choose_date > $endDate) {
-                unset($activeTours[$tourId]); // Remove tour if it's ended
-            }
-        }
-
-        // 2. Fetch new tours starting on the current date
-        $stmt = mysqli_prepare($dbConn, "SELECT a.*, p.p_name FROM tour_guide a LEFT JOIN product_master p ON a.p_code = p.p_code WHERE a.stDate = ? AND a.guide_id = ? AND EXISTS (SELECT 1 FROM tour_car c JOIN reserve_info r ON r.reserveCode = c.reserveCode AND r.p_code = c.p_code AND r.stDate = c.stDate WHERE c.p_code = a.p_code AND c.stDate = a.stDate AND c.grand_eCode = a.grand_eCode AND c.sub_eCode = a.sub_eCode AND IFNULL(r.rev_status,'') NOT IN ('CANCEL','CANCE','CANEL')) ORDER BY a.stDate, a.bus_num ASC");
-        if ($stmt === false) {
-            $content .= "<td style='border:1px dotted black;' align=center'>Error: Could not prepare query.</td>";
-            error_log("Prepare failed: " . mysqli_error($dbConn));
-            continue;
-        }
-        mysqli_stmt_bind_param($stmt, "ss", $choose_date, $guideId);
+    $stmt = mysqli_prepare($dbConn, $tourQry);
+    if ($stmt === false) {
+        error_log("Prepare failed: " . mysqli_error($dbConn));
+    } else {
+        mysqli_stmt_bind_param($stmt, "sss", $guideId, $StartYMD, $EndYMD);
         mysqli_stmt_execute($stmt);
         $rst1 = mysqli_stmt_get_result($stmt);
-        $newTours = [];
         while ($row1 = mysqli_fetch_assoc($rst1)) {
-            $newTours[] = $row1;
+            $stDate = substr($row1['stDate'], 0, 10);
+            $tourId = $row1['grand_eCode'] . "_" . $row1['p_code'] . "_" . $row1['sub_eCode'] . "_" . $stDate;
+            if (isset($tours[$tourId])) { continue; }   // 같은 행사에 버스가 여러 대면 1건으로
+            if (!isset($dayIdx[$stDate])) { continue; } // 조회 범위 밖 방어
+
+            $tourPcnt = getGuideTourPassengerCount($dbConn, $row1['grand_eCode'], $row1['p_code'], $row1['sub_eCode'], $stDate);
+            $row1['stDate']   = $stDate;
+            $row1['tourPcnt'] = $tourPcnt;
+            $tours[$tourId]   = $row1;
+
+            $chartData[$guideId]['name'] = $zip_row1['kor_name'];
+            $chartData[$guideId]['tours'][$tourId] = array(
+                'd'   => $stDate,
+                'p'   => ($row1['p_name'] === null || $row1['p_name'] === '') ? '(상품없음)' : $row1['p_name'],
+                'pax' => $tourPcnt
+            );
+
+            // 행사 기간(p_day)만큼 해당 컬럼들에 배치
+            $start = $dayIdx[$stDate];
+            $last  = min($start + max(1, (int)$row1['p_day']) - 1, $totalDay - 1);
+            for ($d = $start; $d <= $last; $d++) {
+                $dayTours[$d][] = $tourId;
+            }
         }
         mysqli_stmt_close($stmt);
+    }
 
-        // 3. Add new tours to the activeTours array
-        foreach ($newTours as $tour) {
-            $productInfo = getProductMaster($tour['p_code']);
-            $tourDuration = $productInfo['p_day'] ?? 1;
-            $endDate = date('Y-m-d', strtotime($choose_date . " + " . ($tourDuration - 1) . " days"));
-            // Use a unique identifier for the tour (e.g., a combination of fields)
-            $tourId = $tour['grand_eCode'] . "_" . $tour['p_code'] . "_" . $tour['sub_eCode']. "_" . $tour['stDate'];
-            $activeTours[$tourId] = $endDate; // Store end date
-        }
-
-
-        // 4. Display active tours (or an empty cell)
-        if (!empty($activeTours)) {
-            $maxEndDate = max($activeTours); // Find the *latest* end date
-            $colspan = (strtotime($maxEndDate) - strtotime($choose_date)) / (60 * 60 * 24) + 1;  // Calculate colspan 
-
-            $tourLinks = "";
-			$tourNo = 1;
-            foreach ($activeTours as $tourId => $endDate) {
-				// Reconstruct the tour details.  We need to query again, unfortunately.
-				//  This could be optimized, but it's clearer this way.
-				list($grand_eCode, $p_code, $sub_eCode,$stDate) = explode("_", $tourId);
-				$stmt = mysqli_prepare($dbConn, "SELECT a.*, p.p_name FROM tour_guide a LEFT JOIN product_master p ON a.p_code = p.p_code WHERE a.grand_eCode = ? AND a.p_code = ? AND a.sub_eCode = ? AND a.stDate = ? AND EXISTS (SELECT 1 FROM tour_car c JOIN reserve_info r ON r.reserveCode = c.reserveCode AND r.p_code = c.p_code AND r.stDate = c.stDate WHERE c.p_code = a.p_code AND c.stDate = a.stDate AND c.grand_eCode = a.grand_eCode AND c.sub_eCode = a.sub_eCode AND IFNULL(r.rev_status,'') NOT IN ('CANCEL','CANCE','CANEL'))");
-
-				mysqli_stmt_bind_param($stmt, "ssss", $grand_eCode, $p_code, $sub_eCode,$stDate);
-				mysqli_stmt_execute($stmt);
-				$result = mysqli_stmt_get_result($stmt);
-				if ($tour = mysqli_fetch_assoc($result)) { // Use $tour, not $row1
-					$tourPcnt = getGuideTourPassengerCount($dbConn, $tour['grand_eCode'], $tour['p_code'], $tour['sub_eCode'], $stDate);
-					$tourLinks .= sprintf(
-						"<a class=\"guide-tour-item\" href=\"javascript:openwin('%s','%s','%s','%s','%s')\"><span class=\"guide-tour-no\">%s.</span>%s <span class=\"guide-tour-count\">(%s명)</span></a>",
-						htmlspecialchars($tour['grand_eCode']),
-						htmlspecialchars($tour['p_code']),
-						htmlspecialchars($tour['sub_eCode']),
-						htmlspecialchars($guideId),
-						htmlspecialchars($stDate),
-						$tourNo,
-						htmlspecialchars($tour['p_name']),
-						$tourPcnt
-					);
-					$tourNo++;
-				}
-				mysqli_stmt_close($stmt); // Close this inner prepared statement
-			}
-
-            $content .= "<td colspan='{$colspan}' style='border:1px dotted black; background-color: #ffcccc; vertical-align:top;' align=center'>";
-           
-            $content .= "<div class='guide-tour-list'>{$tourLinks}</div>";
-            $content .= "</td>";
-
-            $k += ($colspan -1); // Advance $k.  CRITICAL!
-
-        } else {
+    for ($k = 0; $k < $totalDay; $k++) {
+        if (empty($dayTours[$k])) {
             $content .= "<td style='border:1px dotted black;' align=center'>&nbsp;<br /></td>"; // Empty cell
+            continue;
         }
+
+        // 행사 조합이 동일한 날짜가 이어지는 동안만 셀을 합친다
+        $colspan = 1;
+        while ($k + $colspan < $totalDay
+            && isset($dayTours[$k + $colspan])
+            && $dayTours[$k + $colspan] === $dayTours[$k]) {
+            $colspan++;
+        }
+
+        $tourLinks = "";
+        $tourNo = 1;
+        foreach ($dayTours[$k] as $tourId) {
+            $tour = $tours[$tourId];
+            $tourLinks .= sprintf(
+                "<a class=\"guide-tour-item\" href=\"javascript:openwin('%s','%s','%s','%s','%s')\"><span class=\"guide-tour-no\">%s.</span>%s <span class=\"guide-tour-count\">(%s명)</span></a>",
+                htmlspecialchars($tour['grand_eCode']),
+                htmlspecialchars($tour['p_code']),
+                htmlspecialchars($tour['sub_eCode']),
+                htmlspecialchars($guideId),
+                htmlspecialchars($tour['stDate']),
+                $tourNo,
+                htmlspecialchars((string)$tour['p_name']),
+                $tour['tourPcnt']
+            );
+            $tourNo++;
+        }
+
+        $content .= "<td colspan='{$colspan}' style='border:1px dotted black; background-color: #ffcccc; vertical-align:top;' align=center'>";
+        $content .= "<div class='guide-tour-list'>{$tourLinks}</div>";
+        $content .= "</td>";
+
+        $k += ($colspan - 1);
     }
 
     echo "<tr>
@@ -421,6 +493,38 @@
           </tr>";
     unset($content);
 }
+
+// --- 차트용 집계 (아래 <script> 에서 사용) ---
+// 상품은 전부 개별 색으로 표시한다 (건수 많은 순으로 색 슬롯 배정).
+$prodTotal = array();
+foreach ($chartData as $g) {
+	foreach ($g['tours'] as $t) {
+		$prodTotal[$t['p']] = (isset($prodTotal[$t['p']]) ? $prodTotal[$t['p']] : 0) + 1;
+	}
+}
+arsort($prodTotal);
+$chartProds = array_keys($prodTotal);
+
+$chartRows = array();
+foreach ($chartData as $gid => $g) {
+	$byProd = array();
+	$items  = array();
+	$pax    = 0;
+	foreach ($g['tours'] as $t) {
+		$byProd[$t['p']] = (isset($byProd[$t['p']]) ? $byProd[$t['p']] : 0) + 1;
+		$pax += $t['pax'];
+		$items[] = array('d' => $t['d'], 'p' => $t['p'], 'x' => $t['pax']);   // 툴팁 상세용
+	}
+	usort($items, function($a, $b) { return strcmp($a['d'], $b['d']); });
+	$chartRows[] = array(
+		'label' => $g['name']."(".$gid.")",
+		'cnt'   => count($g['tours']),
+		'pax'   => $pax,
+		'prod'  => $byProd,
+		'items' => $items
+	);
+}
+usort($chartRows, function($a, $b) { return $b['cnt'] - $a['cnt']; });
 
 ?>
 		
@@ -440,7 +544,107 @@
     <?php
 		include "include/side_m.php"
 	?>
+    <script src="lib/flot/jquery.flot.stack.min.js"></script>
     <script>
+		// --- 가이드별 x 상품별 배정 건수 차트 (Flot, header.php 에서 이미 로드됨) ---
+		// DataTable 초기화에서 예외가 나도 차트는 그려지도록 별도 ready 블록에서 먼저 실행한다.
+		$(document).ready(function () {
+			var chartRows  = <?=json_encode($chartRows, JSON_UNESCAPED_UNICODE)?>;
+			var chartProds = <?=json_encode($chartProds, JSON_UNESCAPED_UNICODE)?>;
+			var $box = $('#guideChart');
+			if (!chartRows || !chartRows.length) {
+				$box.html('<div class="text-center text-muted" style="padding:20px;">조회된 배정 내역이 없습니다.</div>');
+				return;
+			}
+
+			// 상품 8종 이하면 검증된 고정 팔레트, 그 이상이면 색상환을 균등 분할해 진한 색으로 생성한다.
+			// Flot 의 $.color.parse() 는 hsl() 문자열을 못 읽으므로 반드시 hex 로 넘긴다.
+			var palette8 = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948'];
+			var hslHex = function (h, s, l) {
+				var a = s * Math.min(l, 1 - l);
+				var f = function (k0) {
+					var k = (k0 + h / 30) % 12;
+					var c = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+					return ('0' + Math.round(255 * c).toString(16)).slice(-2);
+				};
+				return '#' + f(0) + f(8) + f(4);
+			};
+			var n = chartProds.length;
+			var colorOf = function (i) {
+				if (n <= palette8.length) { return palette8[i]; }
+				// 인접 상품끼리 색상각이 좁아지므로 명도를 번갈아 줘서 경계를 살린다
+				return hslHex((i * 360 / n + 205) % 360, 0.62, (i % 2 ? 0.34 : 0.47));
+			};
+
+			var ticks = $.map(chartRows, function (r, i) {
+				return [[chartRows.length - 1 - i, r.label]];   // 건수 많은 가이드가 위로
+			});
+			var series = $.map(chartProds, function (pn, si) {
+				return {
+					label: pn,
+					color: colorOf(si),
+					data: $.map(chartRows, function (r, i) {
+						return [[r.prod[pn] || 0, chartRows.length - 1 - i]];
+					})
+				};
+			});
+
+			$box.height(Math.max(140, chartRows.length * 30 + 40));
+			$.plot($box, series, {
+				series: {
+					stack: true,
+					bars: { show: true, horizontal: true, barWidth: 0.6, align: 'center', lineWidth: 0, fill: 1 }
+				},
+				xaxis: { min: 0, tickDecimals: 0, font: { size: 11, color: '#898781' } },
+				yaxis: { ticks: ticks, font: { size: 11, color: '#52514e' } },
+				grid:  { hoverable: true, borderWidth: 0, color: '#e1e0d9' },
+				legend: { container: $('#chartLegend'), noColumns: 5 }
+			});
+
+			var $tip = $('<div id="guideChartTip"></div>').appendTo('body');
+			var esc = function (s) { return $('<div></div>').text(s == null ? '' : s).html(); };
+
+			// 가이드의 날짜별 행사 목록. hover 한 상품은 강조한다.
+			var buildTip = function (r, pn) {
+				var byDate = {}, order = [];
+				$.each(r.items, function (i, it) {
+					if (!byDate[it.d]) { byDate[it.d] = []; order.push(it.d); }
+					byDate[it.d].push(it);
+				});
+				var html = '<div class="gc-tip-h">' + esc(r.label) + ' ' + (r.prod[pn] || 0) + '건'
+					+ ' &middot; 전체 ' + r.cnt + '건 / ' + r.pax + '명</div>';
+				$.each(order, function (i, d) {
+					var parts = $.map(byDate[d], function (it) {
+						var txt = esc(it.p) + ' (' + it.x + '명)';
+						return it.p === pn ? '<span class="gc-hi">' + txt + '</span>' : txt;
+					});
+					html += '<div><span class="gc-tip-d">' + esc(d.substr(5).replace('-', '/')) + '</span>'
+						+ parts.join(' / ') + '</div>';
+				});
+				return html;
+			};
+
+			$box.on('plothover', function (e, pos, item) {
+				if (!item) { $tip.hide(); return; }
+				var r = chartRows[item.dataIndex];
+				$tip.html(buildTip(r, chartProds[item.seriesIndex])).show();
+
+				// 화면 밖으로 나가지 않도록 위치 보정
+				var $w = $(window);
+				var left = item.pageX + 14;
+				var top  = item.pageY - 20;
+				if (left + $tip.outerWidth() > $w.scrollLeft() + $w.width() - 8) {
+					left = Math.max($w.scrollLeft() + 8, item.pageX - $tip.outerWidth() - 14);
+				}
+				top = Math.min(top, $w.scrollTop() + $w.height() - $tip.outerHeight() - 8);
+				top = Math.max(top, $w.scrollTop() + 4);
+				$tip.css({ top: top, left: left });
+			});
+			$box.on('mouseleave', function () { $tip.hide(); });
+
+			$('#chartToggle').on('click', function () { $('#chartBody').slideToggle(); });
+		});
+
 		$(document).ready(function () {
             pt.initReservationList()
             
@@ -491,9 +695,9 @@
 					},
 					
 					fixedColumns: true
-			   
+
 			 });
-			
+
 		});
 		var ctr=0;
         function openwin(grand_eCode,p_code,s_code,gid,st) { 

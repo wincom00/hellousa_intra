@@ -259,7 +259,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 		$left_banner_rst1 = $dbConn->query($left_banner_qry1);
 		$left_banner_row1 = $left_banner_rst1->fetch_assoc();
     
-		return $left_banner_row1[content];
+		return $left_banner_row1['content'];
 
 	}
 
@@ -278,9 +278,9 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 
 		while($row1 = $rst1->fetch_assoc()){
 			
-			$company_area = codebaseName($row1[company_area]);
+			$company_area = codebaseName($row1['company_area']);
 
-			if($employee_id == $row1[userid])
+			if($employee_id == $row1['userid'])
 			{
 				$content .= "<option value='$row1[userid]' selected> $row1[kor_name] ($row1[userid])";
 			}
@@ -339,9 +339,9 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 
 		while($row1 = $rst1->fetch_assoc()){
 			
-			$company_area = codebaseName($row1[company_area]);
+			$company_area = codebaseName($row1['company_area']);
 
-			if($rand_id == $row1[userid])
+			if($rand_id == $row1['userid'])
 			{
 				$content .= "<option value='$row1[userid]' selected>[$company_area[comment]] $row1[kor_name] ($row1[userid])";
 			}
@@ -367,9 +367,9 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 
 		while($row1 = $rst1->fetch_assoc()){
 			
-			$company_area = codebaseName($row1[company_area]);
+			$company_area = codebaseName($row1['company_area']);
 
-			if($rand_id == $row1[userid])
+			if($rand_id == $row1['userid'])
 			{
 				$content .= "<option value='$row1[userid]' selected>[$company_area[comment]] $row1[kor_name] ($row1[userid])";
 			}
@@ -400,7 +400,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 		while($row1 = $rst1->fetch_assoc()){
 
 
-			$title = Misc::cutLongString($row1[title], 30, $dot=true);
+			$title = Misc::cutLongString($row1['title'], 30, $dot=true);
 			
 			if($num1%3 == "0")
 			{
@@ -456,7 +456,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 
 
 
-			$title = Misc::cutLongString($row1[title], 30, $dot=true);
+			$title = Misc::cutLongString($row1['title'], 30, $dot=true);
 
 			if($table_id == "notice")
 			{
@@ -500,10 +500,10 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 
 		while($row1 = $rst1->fetch_assoc()){
 
-			$today = explode(" ",$row1[wdate]);
+			$today = explode(" ",$row1['wdate']);
 
 			$yesterday1 = date("Y-m-d H:i:s",time()-86400);
-			if($row1[wdate] > $yesterday1)
+			if($row1['wdate'] > $yesterday1)
 				{
 				$new_icon = "<img src='./img/New2.gif'>";
 				}
@@ -512,7 +512,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 				$new_icon = "&nbsp;";
 				}
 
-			$title = Misc::cutLongString($row1[title], 30, $dot=true);
+			$title = Misc::cutLongString($row1['title'], 30, $dot=true);
 
 			$content .= "
                           <tr>
@@ -554,16 +554,16 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 
 
 		// 상품정보 가져오기
-		$productInfor = getProductMaster($row1[p_code]);
+		$productInfor = getProductMaster($row1['p_code']);
 
 		// 출발일 관리
 		$week1 = array("0", "1", "2","3","4","5","6","9","/");
 		$week2   = array("일","월", "화", "수","목","금","토","매일","&nbsp;");
-		$productInfor[startWeek] = str_replace($week1, $week2, $productInfor[startWeek]);
+		$productInfor['startWeek'] = str_replace($week1, $week2, $productInfor['startWeek']);
 
 
 
-		if($productInfor[userfile1])
+		if($productInfor['userfile1'])
 		{
 			$mainImg = "<img src=product_img/$productInfor[userfile1] width=132 height=84 border=0 class=\"quote\">";
 		}
@@ -574,7 +574,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 
 
 
-		if($productInfor[display_price])
+		if($productInfor['display_price'])
 		{
 			$priceMsg = "$productInfor[display_price]";
 		}
@@ -582,19 +582,19 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 		{
 			$today = date("Y-m-d");
 
-			if($today >= $productInfor[eventStart] && $today <= $productInfor[eventStop])
+			if($today >= $productInfor['eventStart'] && $today <= $productInfor['eventStop'])
 			{
-				$adult_price = number_Format($productInfor[event_adult_price]);
-				$child_price = number_Format($productInfor[event_child_price]);
-				$baby_price = number_Format($productInfor[event_baby_price]);
+				$adult_price = number_Format($productInfor['event_adult_price']);
+				$child_price = number_Format($productInfor['event_child_price']);
+				$baby_price = number_Format($productInfor['event_baby_price']);
 
 				$eventMsg = "[이벤트]";
 			}
 			else
 			{
-				$adult_price = number_Format($productInfor[web_adult_price]);
-				$child_price = number_Format($productInfor[web_child_price]);
-				$baby_price = number_Format($productInfor[web_baby_price]);
+				$adult_price = number_Format($productInfor['web_adult_price']);
+				$child_price = number_Format($productInfor['web_child_price']);
+				$baby_price = number_Format($productInfor['web_baby_price']);
 
 				$eventMsg = "";
 			}
@@ -602,7 +602,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 			$priceMsg = "성인 : $$adult_price ";
 		}		
 
-		$productInfor[p_name] = Misc::cutLongStringWithTag($productInfor[p_name],12,true);
+		$productInfor['p_name'] = Misc::cutLongStringWithTag($productInfor['p_name'],12,true);
 
 		if($num == "4")
 			{
@@ -709,7 +709,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 
 			while($row1 = $rst1->fetch_assoc()){
 				
-				$hinfo=getHotelfInfo($row1[hotel_code]);
+				$hinfo=getHotelfInfo($row1['hotel_code']);
 				
 				$content .= "$hinfo[h_name] : $row1[cnt]개<br>";
 						
@@ -822,12 +822,12 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 		$rst1 = $dbConn->query($qry1);
 		while($row1 = $rst1->fetch_assoc()){
 
-              if ($row1[status] == "REQUEST") {
+              if ($row1['status'] == "REQUEST") {
 
-                   $status = $row1[status];
+                   $status = $row1['status'];
 
 			  } else {
-				  $status = $row1[status];
+				  $status = $row1['status'];
 
 			  }
 
@@ -847,7 +847,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 		$rst1 = $dbConn->query($qry1);
 		while($row1 = $rst1->fetch_assoc()){
 
-            	  $rtype = $row1[refund_type];
+            	  $rtype = $row1['refund_type'];
 
 	    }
 
@@ -917,7 +917,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 		
         while($row1 = $rst1->fetch_assoc()){
 			
-			    $selectValueInput = $row1[lvcode2];
+			    $selectValueInput = $row1['lvcode2'];
 //echo $code1 ."|".$selectValueInput;
 				if($code1 == $selectValueInput)
 				{
@@ -1399,9 +1399,9 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 
 		while($row1 = $rst1->fetch_assoc()){
 			
-			$bus_team = codebasename($row1[bus_team]);
+			$bus_team = codebasename($row1['bus_team']);
 
-			if($bus_id == $row1[bus_id])
+			if($bus_id == $row1['bus_id'])
 			{
 				$content .= "<option value=$row1[bus_id] selected>$bus_team[comment] ($row1[bus_number])";
 			}
@@ -1427,7 +1427,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 
 		while($row1 = $rst1->fetch_assoc()){
 			
-			if($room_code == $row1[seq_no])
+			if($room_code == $row1['seq_no'])
 			{
 				$content .= "<option value=$row1[seq_no] selected>$row1[room_type]";
 			}
@@ -1505,7 +1505,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 		
 		while($zip_row1 = $zip_rst1->fetch_assoc())
 		{
-			$code = $zip_row1[lvcode1].$zip_row1[lvcode2];
+			$code = $zip_row1['lvcode1'].$zip_row1['lvcode2'];
 			
 			if ($h_area == $code) {
 			     $content .= "<option value='$code' selected> $code- $zip_row1[comment]";
@@ -1533,7 +1533,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 		
 		while($zip_row1 = $zip_rst1->fetch_assoc())
 		{
-			$code = $zip_row1[lvcode1].$zip_row1[lvcode2].$zip_row1[lvcode3];
+			$code = $zip_row1['lvcode1'].$zip_row1['lvcode2'].$zip_row1['lvcode3'];
 			if ($h_area2 == $code) {
 			     $content .= "<option value='$code' selected> $code- $zip_row1[comment]";
 			} else {
@@ -1560,7 +1560,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 		//echo $zip_qry1 ;
 		while($zip_row1 = $zip_rst1->fetch_assoc())
 		{
-			$code = $zip_row1[lvcode1].$zip_row1[lvcode2];
+			$code = $zip_row1['lvcode1'].$zip_row1['lvcode2'];
 			if ($h_area == $code) {
 			     $content .= "<option value=\"$code\" selected> $code- $zip_row1[comment]";
 			} else {
@@ -1587,7 +1587,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 		
 		while($zip_row1 = $zip_rst1->fetch_assoc())
 		{
-			$code = $zip_row1[lvcode1].$zip_row1[lvcode2].$zip_row1[lvcode3];
+			$code = $zip_row1['lvcode1'].$zip_row1['lvcode2'].$zip_row1['lvcode3'];
 			if ($h_area2 == $code) {
 			     $content .= "<option value=\"$code\" selected> $code- $zip_row1[comment]";
 			} else {
@@ -2041,8 +2041,8 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 			$numInt = "1";
 		}
 
-		$num[num] = $numInt;
-		$num[numChar] = $num1;
+		$num['num'] = $numInt;
+		$num['numChar'] = $num1;
 
 		return $num;
 	}
@@ -2059,29 +2059,29 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 		//exit;
 		while($row1 = $rst1->fetch_assoc()){
 			$content  = "";
-			if (($pdx == $row1[parent_idx]) && ($division == $division)) {
+			if (($pdx == $row1['parent_idx']) && ($division == $division)) {
 				$in = "in";
 			} else {
 				$in = "";
 			}
 		    $content .= "<div class='panel-heading'>
 							<a href='#C".$i."' data-parent='#side_accordion' data-toggle='collapse' class='accordion-toggle' >
-								<i class='glyphicon glyphicon-folder-close'></i>".$row1[menu_name]."
+								<i class='glyphicon glyphicon-folder-close'></i>".$row1['menu_name']."
 							</a>
 						</div>
 						<div class='accordion-body collapse ".$in."' id='C".$i."'>
 								<div class='panel-body'>
 									<ul class='nav nav-pills nav-stacked'>";
-			$qry2 = "select * from menu_info where division='".$divison."' && parent_idx='".$row1[parent_idx]."' && sub_idx!='0' order by parent_idx,sub_idx asc";
+			$qry2 = "select * from menu_info where division='".$divison."' && parent_idx='".$row1['parent_idx']."' && sub_idx!='0' order by parent_idx,sub_idx asc";
 			//echo $qry2;
 		//exit;
 			while($row2 = $rst2->fetch_assoc()){
-				    if (($pdx == $row2[parent_idx]) && ($sub == $row2[sub_idx])) {
+				    if (($pdx == $row2['parent_idx']) && ($sub == $row2['sub_idx'])) {
 					   $class = "class='active'";
 					} else {
 					   $class = "";
 					}
-					$content .="<li ".$class."><a href='".$row2[menu_link]."'>".$row2[menu_name]."</a></li>";
+					$content .="<li ".$class."><a href='".$row2['menu_link']."'>".$row2['menu_name']."</a></li>";
 					//exit;			
 			}
 			
@@ -2116,31 +2116,31 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 		//exit;
 		while($row1 = $rst1->fetch_assoc()){
 			$content  = "";
-			if (($pdx == $row1[parent_idx]) && ($division == $division)) {
+			if (($pdx == $row1['parent_idx']) && ($division == $division)) {
 				$in = "in";
 			} else {
 				$in = "";
 			}
 		    $content .= "<div class='panel-heading'>
 							<a href='#C".$i."' data-parent='#side_accordion' data-toggle='collapse' class='accordion-toggle' >
-								<i class='glyphicon glyphicon-folder-close'></i>".$row1[menu_name]."
+								<i class='glyphicon glyphicon-folder-close'></i>".$row1['menu_name']."
 							</a>
 						</div>
 						<div class='accordion-body collapse ".$in."' id='C".$i."'>
 								<div class='panel-body'>
 									<ul class='nav nav-pills nav-stacked'>";
-			$qry2 = "select * from menu_info_user where division='".$division."' && parent_idx='".$row1[parent_idx]."' && sub_idx!='0' && userid='".$userid."' order by parent_idx,sub_idx asc";
+			$qry2 = "select * from menu_info_user where division='".$division."' && parent_idx='".$row1['parent_idx']."' && sub_idx!='0' && userid='".$userid."' order by parent_idx,sub_idx asc";
 
 		    $rst2 = $dbConn->query($qry2);
 			//echo $qry2;
 		//exit;
 			while($row2 = $rst2->fetch_assoc()){
-				    if (($pdx == $row2[parent_idx]) && ($sub == $row2[sub_idx])) {
+				    if (($pdx == $row2['parent_idx']) && ($sub == $row2['sub_idx'])) {
 					   $class = "class='active'";
 					} else {
 					   $class = "";
 					}
-					$content .="<li ".$class."><a href='".$row2[menu_link]."'>".$row2[menu_name]."</a></li>";
+					$content .="<li ".$class."><a href='".$row2['menu_link']."'>".$row2['menu_name']."</a></li>";
 					//exit;			
 			}
 			
@@ -2172,14 +2172,14 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 		
 		while($row1 = $rst1->fetch_assoc()){
 			$content  = "";
-			if (($pdx == $row1[parent_idx]) && ($division == $division)) {
+			if (($pdx == $row1['parent_idx']) && ($division == $division)) {
 				$in = "in";
 			} else {
 				$in = "";
 			}
 		    $content .= "<div class='panel-heading'>
 							<a href='#C$i' data-parent='#side_accordion' data-toggle='collapse' class='accordion-toggle' >
-								<i class='glyphicon glyphicon-folder-close'></i>".$row1[menu_name]."'
+								<i class='glyphicon glyphicon-folder-close'></i>".$row1['menu_name']."'
 							</a>
 						</div>
 						<div class='accordion-body collapse $in' id='C$i'>
@@ -2231,7 +2231,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 
 			while($row1 = $rst1->fetch_assoc()){
 				
-				$selectValueInput = $row1[lvcode2];
+				$selectValueInput = $row1['lvcode2'];
 
 				if($c_code1 == $selectValueInput)
 				{
@@ -2255,7 +2255,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 
 			while($row1 = $rst1->fetch_assoc()){
 				
-				$selectValueInput = $row1[lvcode3];
+				$selectValueInput = $row1['lvcode3'];
 
 				if($c_code2 == $selectValueInput)
 				{
@@ -2286,7 +2286,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 		  if ($i==1) 
 		  {	
 		  	
-			   $content .= $r_row[limit_date];
+			   $content .= $r_row['limit_date'];
 			  
 		  } 
 		  else 
@@ -2388,9 +2388,9 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 			
 			move_uploaded_file($attachFile, $saveDir . $saveFileName);
 			chmod($saveDir . $saveFileName, 0744);
-			$attc[size] = filesize($saveDir . $saveFileName);		//byte 
-			$attc[savedName] = $saveFileName;		// 저장되는 파일 이름
-			$attc[upName] = $attachFileName;		// 업로드시 파일네임
+			$attc['size'] = filesize($saveDir . $saveFileName);		//byte 
+			$attc['savedName'] = $saveFileName;		// 저장되는 파일 이름
+			$attc['upName'] = $attachFileName;		// 업로드시 파일네임
 	   
 			return $attc;
 		} 
@@ -2503,7 +2503,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 			$row1 = $rst1->fetch_assoc();
 
 			// 로그인 정보가 있다면... 이 사람의 정보로 쿠키를 굽니다.
-			$login_info = array(sitename => "hellointradmin", user_id => "$user_id", user_pw => "$password", user_level => $row1[level], division => $row1['division']);
+			$login_info = array('sitename' => "hellointradmin", 'user_id' => "$user_id", 'user_pw' => "$password", 'user_level' => $row1['level'], 'division' => $row1['division']);
 			$login_info = base64_encode(serialize($login_info));
 			
 			// 로컬(HTTP) / 라이브(HTTPS) 모두에서 쿠키가 제대로 구워지도록 처리한다.
@@ -2703,7 +2703,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 
 			while($row1 = $rst1->fetch_assoc()){
 				
-				$selectValueInput = $row1[lvcode1].$row1[lvcode2];
+				$selectValueInput = $row1['lvcode1'].$row1['lvcode2'];
 
 				if($selectValueInput == $code)
 				{
@@ -2730,7 +2730,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 
 			while($row1 = $rst1->fetch_assoc()){
 				
-				$selectValueInput = $row1[lvcode1].$row1[lvcode2];
+				$selectValueInput = $row1['lvcode1'].$row1['lvcode2'];
 
 				if($selectValueInput == $code)
 				{
@@ -2757,7 +2757,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 
 			while($row1 = $rst1->fetch_assoc()){
 				
-				$selectValueInput = $row1[lvcode1].$row1[lvcode2].$row1[lvcode3];
+				$selectValueInput = $row1['lvcode1'].$row1['lvcode2'].$row1['lvcode3'];
 
 				if($selectValueInput == $code)
 				{
@@ -2784,8 +2784,8 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 
 			while($row1 = $rst1->fetch_assoc()){
 				
-				$selectValue = $row1[lvcode1].$row1[lvcode2];
-				$selectValueInput = $row1[lvcode1].$row1[lvcode2].$row1[lvcode3];
+				$selectValue = $row1['lvcode1'].$row1['lvcode2'];
+				$selectValueInput = $row1['lvcode1'].$row1['lvcode2'].$row1['lvcode3'];
 
 				if($selectValue == $code || $selectValueInput == $code)
 				{
@@ -2812,8 +2812,8 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 
 			while($row1 = $rst1->fetch_assoc()){
 				
-				$selectValue = $row1[lvcode1].$row1[lvcode2];
-				$selectValueInput = $row1[lvcode1].$row1[lvcode2].$row1[lvcode3];
+				$selectValue = $row1['lvcode1'].$row1['lvcode2'];
+				$selectValueInput = $row1['lvcode1'].$row1['lvcode2'].$row1['lvcode3'];
 
 				if($selectValueInput == $code)
 				{
@@ -2841,7 +2841,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 
 			while($row1 = $rst1->fetch_assoc()){
 				
-				$selectValueInput = $row1[lvcode1].$row1[lvcode2].$row1[lvcode3];
+				$selectValueInput = $row1['lvcode1'].$row1['lvcode2'].$row1['lvcode3'];
 				//$selectValueInput = $row1[lvcode1].$row1[lvcode2].$row1[lvcode3];
 
 				if($selectValueInput == $code)
@@ -2869,8 +2869,8 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 		//	echo $qry1;
 			while($row1 = $rst1->fetch_assoc()){
 				
-				$selectValue = $row1[lvcode1].$row1[lvcode2];
-				$selectValueInput = $row1[lvcode1].$row1[lvcode2].$row1[lvcode3];
+				$selectValue = $row1['lvcode1'].$row1['lvcode2'];
+				$selectValueInput = $row1['lvcode1'].$row1['lvcode2'].$row1['lvcode3'];
 
 				if($selectValueInput == $code)
 				{
@@ -2896,8 +2896,8 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 		//	echo $qry1;
 			while($row1 = $rst1->fetch_assoc()){
 				
-				$selectValue = $row1[lvcode1].$row1[lvcode2];
-				$selectValueInput = $row1[lvcode1].$row1[lvcode2].$row1[lvcode3];
+				$selectValue = $row1['lvcode1'].$row1['lvcode2'];
+				$selectValueInput = $row1['lvcode1'].$row1['lvcode2'].$row1['lvcode3'];
 
 				if($selectValueInput == $code)
 				{
@@ -2925,10 +2925,10 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 
 			while($row1 = $rst1->fetch_assoc()){
 				
-				$selectValue = $row1[lvcode1].$row1[lvcode2];
-				$selectValueInput = $row1[lvcode1].$row1[lvcode2].$row1[lvcode3];
+				$selectValue = $row1['lvcode1'].$row1['lvcode2'];
+				$selectValueInput = $row1['lvcode1'].$row1['lvcode2'].$row1['lvcode3'];
 
-				if($row1[lvcode3] == "00")
+				if($row1['lvcode3'] == "00")
 				{
 					$msg = "==";
 				}
@@ -3019,7 +3019,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 			while($row1 = $rst1->fetch_assoc())
 			{
 				// 로컬상품명 
-				$productInfo = getProductMaster($row1[local_code]);
+				$productInfo = getProductMaster($row1['local_code']);
 
 				$content .= "&nbsp;<input type=checkbox name=local_item value=\"$row1[local_code]/$productInfo[normal_adult_price]\" checked> $productInfo[p_name] - $$productInfo[normal_adult_price]<br>";
 			}
@@ -3039,7 +3039,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 			while($row1 = $rst1->fetch_assoc())
 			{
 				// 로컬상품명 
-				$productInfo = getProductMaster($row1[local_code]);
+				$productInfo = getProductMaster($row1['local_code']);
 
 				$content .= "&nbsp;<input type=checkbox name=local_item value=\"$row1[local_code]/$productInfo[normal_adult_price]\" checked> $productInfo[p_name] - $$productInfo[normal_adult_price]<br>";
 			}
@@ -3059,7 +3059,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 			while($row1 = $rst1->fetch_assoc())
 			{
 				// 로컬상품명 
-				$productInfo = getProductMaster($row1[local_code]);
+				$productInfo = getProductMaster($row1['local_code']);
 
 				$content .= "$row1[local_code]\r";
 			}
@@ -3085,7 +3085,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 		//$hasAccess = false;
 		for ($i = 1; $i <= $numRows; $i++) {
 			$theUser = $rst->fetch_assoc();
-			if ($theUser[userid] == $user_dbinfo[userid]) {
+			if ($theUser['userid'] == $user_dbinfo['userid']) {
 				return true;
 			}
 		}
@@ -3096,7 +3096,7 @@ function credit_processusa($xType,$address,$zipcode,$card_num,$cvv2,$month,$year
 	function hasMenuAccess2($filename) {
 		global $user_dbinfo;
 		
-		$curr_user = $user_dbinfo[userid];
+		$curr_user = $user_dbinfo['userid'];
 		$qry = "select userid from menu_info_user where menu_link like '%$filename%' && userid = '$curr_user'";
 		$rst = $dbConn->query($qry);
         $numRows= $rst->num_rows;
