@@ -33,7 +33,7 @@
     $rst3 = $dbConn->query($qry3);
 
     // CAR SETTLE SUM 정보
-    $qry4 = "SELECT * FROM car_settlesum WHERE grand_eCode = '{$data_row['grand_eCode']}' AND sub_eCode = '{$data_row['sub_eCode']}' ";
+    $qry4 = "SELECT * FROM car_settlesum WHERE grand_eCode = '{$data_row['grand_eCode']}' AND sub_eCode = '{$data_row['sub_eCode']}' ORDER BY seq_no DESC "; // 중복 저장분이 있으면 최신 1건 (손익 리포트와 동일)
     $rst4 = $dbConn->query($qry4);
     $hotel_sum_data = mysqli_fetch_assoc($rst4);
 

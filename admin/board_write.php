@@ -94,7 +94,7 @@
 										<?php } ?>
 										<tr bgcolor="#FFFFFF"> 
 										  <td width="100" height="25" align="center" bgcolor="#FBFBFB">작성자</td>
-										  <td><input name="user_name" type="text" class="form-control" style="width:200px;" value="<?= $user_dbinfo[kor_name] ?>[동부투어]"></td>
+										  <td><input name="user_name" type="text" class="form-control" style="width:200px;" value="<?= $user_dbinfo[kor_name] ?>"></td>
 										</tr>
 										<tr bgcolor="#FFFFFF"> 
 										  <td height="25" align="center" bgcolor="#FBFBFB">제목 </td>

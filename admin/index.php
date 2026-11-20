@@ -151,7 +151,7 @@
 
 	/* 종료 행사 정산현황 — 최근 N일 내 종료된 행사(서브코드 단위, hotel_settle.php/guide_settle.php와 동일 단위)
 	   종료일 = stDate + p_day - 1 (getPeriodbyrev와 동일)
-	   호텔·차량 : *_settlesum 행 존재 = 완료 (등록 즉시 완료. getHotelStStatus/getCarStStatus와 동일 기준)
+	   호텔: 최신 정산이 DONE일 때 완료 / 차량: car_settlesum 행 존재 = 완료
 	   가이드   : guide_setmaster 확정본 1건(guideMasterPickOrderExpr) 기준 — getGuideStatus와 동일 판정 */
 	function getEndedEvents($days = 30) {
 		global $dbConn;
@@ -165,8 +165,9 @@
 			tg.grand_eCode, tg.sub_eCode, min(tg.stDate) as stDate, min(tg.p_name) as p_name, min(tg.seq_no) as seq,
 			date_add(min(tg.stDate), interval greatest(ifnull(max(pm.p_day),1),1)-1 day) as edDate,
 			group_concat(distinct ml.kor_name) as guide_names,
-			(select count(*) from hotel_settlesum h
-				where h.grand_eCode=tg.grand_eCode and h.sub_eCode=tg.sub_eCode) as hotel_cnt,
+			(select ifnull(h.status,'') from hotel_settlesum h
+				where h.grand_eCode=tg.grand_eCode and h.sub_eCode=tg.sub_eCode
+				order by h.seq_no desc limit 1) as hotel_status,
 			/* 호텔대상 판정용 — hotel_cal2.php와 같은 hotel_assign 기준 (옛 데이터는 sub_eCode 공란이라 함께 인정) */
 			(select count(*) from hotel_assign ha
 				where ha.grand_eCode=tg.grand_eCode and (ha.sub_eCode=tg.sub_eCode or ifnull(ha.sub_eCode,'')='')) as hotel_assign_cnt,
@@ -454,10 +455,10 @@
 		elseif ($gs[0] == 'DONE')     $g = array('보고전',   'badge-orange',  0);
 		else                          $g = array('미등록',   'badge-danger',  0);
 
-		$hotelReg    = ((int)$ee['hotel_cnt'] > 0) ? 1 : 0;
+		$hotelReg    = ($ee['hotel_status'] === 'DONE') ? 1 : 0;
 		$carReg      = ((int)$ee['car_cnt'] > 0) ? 1 : 0;
 		/* 호텔대상 = 호텔배정 있음 또는 이미 호텔정산 등록 — 비대상은 호텔 배지·집계에서 제외 */
-		$hotelTarget = ((int)$ee['hotel_assign_cnt'] > 0 || $hotelReg) ? 1 : 0;
+		$hotelTarget = ((int)$ee['hotel_assign_cnt'] > 0 || $ee['hotel_status'] !== null) ? 1 : 0;
 		$endTotal    = 2 + $hotelTarget;
 		$done        = $hotelReg + $carReg + $g[2];
 		if ($done < $endTotal) $endPending++;
@@ -493,7 +494,7 @@
 			array('가이드', "guide_cal_m.php?division=6&pdx=2&sub=10&number={$ee['seq']}&scode=".urlencode($ee['gs'][3]), $ee['g'][0], $ee['g'][1]),
 		);
 		if ($ee['hotelTarget']) {
-			array_unshift($steps, array('호텔', "hotel_cal2.php?division=6&pdx=1&sub=10&$subQs", $ee['hotelReg'] ? '완료' : '미등록', $ee['hotelReg'] ? 'badge-success' : 'badge-danger'));
+			array_unshift($steps, array('호텔', "hotel_cal2.php?division=6&pdx=1&sub=10&$subQs", $ee['hotelReg'] ? '정산확인' : ($ee['hotel_status'] !== null ? '정산대기' : '미등록'), $ee['hotelReg'] ? 'badge-success' : ($ee['hotel_status'] !== null ? 'badge-orange' : 'badge-danger')));
 		}
 ?>
 			<div class="col-sm-6 col-md-4 col-lg-3">

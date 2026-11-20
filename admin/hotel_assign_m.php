@@ -150,14 +150,21 @@
 			//exit;
 		}
 		//exit;
-		Misc::jvAlert("업데이트 되었습니다!!","");
-		
+		// 호텔배정대로 호텔정산 자동 반영 (호텔등록 기간별 요금, 담당자 저장분은 제외)
+		$hr_sync = syncHotelSettleFromAssign($gcode, $gscode);
+		Misc::jvAlert("업데이트 되었습니다!!".($hr_sync != '' ? "\\n".addslashes($hr_sync) : ""),"");
+
 
 	}
 	if ($mode == "del") {
 
+           $hr_delrow = $dbConn->query("select grand_eCode, sub_eCode from hotel_assign where seq_no='".(int)$no."'")->fetch_assoc();
            $qryi = "delete from hotel_assign where seq_no='".$no."'";
 		   $rsti = $dbConn->query($qryi);
+           if ($hr_delrow) {
+               $hr_sync = syncHotelSettleFromAssign($hr_delrow['grand_eCode'], $hr_delrow['sub_eCode']);
+               if ($hr_sync != '') Misc::jvAlert(addslashes($hr_sync), "");
+           }
     }
 	
 	function buslist() {

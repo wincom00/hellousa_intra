@@ -37,7 +37,7 @@
 		if(is_uploaded_file($tmpName3)){
 				$pds_file3 = $_FILES['userfile3']['name'];
 				$board_pds_pos = "upload";
-				$attc_name3 = Misc::uploadFileUnsafely($tmpName1 , $pds_file3 , $board_pds_pos);
+				$attc_name3 = Misc::uploadFileUnsafely($tmpName3 , $pds_file3 , $board_pds_pos);
 
 				
 				$ffname3 = $attc_name3[savedName];

@@ -9,10 +9,13 @@
  *             한 행사에 여러 복합상품 예약이 섞여 있어도 행사 원가가 중복/누락 없이 나뉨.
  *   · 호텔원가: hotel_settlesum.real_amt(실제) 우선, 없으면 hotel_settle+hotel_settleetc(예상)
  *   · 차량원가: car_settlesum.real_amt(실제) 우선, 없으면 car_settle+car_settleetc(예상)
+ *               ※ settlesum은 차량당 1행 설계(hotel_save/cal_save) → 중복 저장분이 있으면 최신 seq_no 1건만 반영.
+ *               ※ 원가 입력이 없는 행사가 섞이면 '미입력' (호텔은 호텔배정(hotel_assign)이 있는 행사만 대상).
  *   · 가이드원가: guide_meal + guide_admission + guide_etcamt
  *                 ※ 정산코드(settle_code)가 있어야 유효한 정산. 행사당 대표 1건(정산완료 우선)만 반영해 이중계산 방지.
  * - 행사수입: guide_shopping.c_profit + guide_option.o_cprofit (마이너스 원가, 원가와 같은 비율로 배분)
  * - 손익 = 매출 + 행사수입 - (호텔 + 차량 + 가이드 원가)
+ * - 검증된 데이터 전제(last_total 중복저장, MAIN/SUB 상태 일치, USD 단일 등)는 profit_list.php 머리 주석 참고
  * ============================================================ */
 
 if (isset($_GET['action']) && $_GET['action'] == 'export') ob_start();
@@ -72,8 +75,13 @@ $sql = "WITH
             SELECT x.grand_eCode, x.sub_eCode, x.ev_pax,
                    COALESCE(hs.real_amt, COALESCE(h.room_amt,0) + COALESCE(he.etc_amt,0)) AS hotel_cost,
                    CASE WHEN hs.real_amt IS NULL AND COALESCE(h.room_amt,0) + COALESCE(he.etc_amt,0) <> 0 THEN 1 ELSE 0 END AS hotel_est,
+                   CASE WHEN hs.real_amt IS NOT NULL THEN 1 ELSE 0 END AS hotel_real,
+                   CASE WHEN hs.real_amt IS NULL AND COALESCE(h.room_amt,0) + COALESCE(he.etc_amt,0) = 0
+                             AND ha.sub_eCode IS NOT NULL THEN 1 ELSE 0 END AS hotel_none,   /* 호텔배정은 있는데 원가 입력 없음 */
                    COALESCE(cs.real_amt, COALESCE(c.bus_amt,0) + COALESCE(ce.etc_amt,0)) AS car_cost,
                    CASE WHEN cs.real_amt IS NULL AND COALESCE(c.bus_amt,0) + COALESCE(ce.etc_amt,0) <> 0 THEN 1 ELSE 0 END AS car_est,
+                   CASE WHEN cs.real_amt IS NOT NULL THEN 1 ELSE 0 END AS car_real,
+                   CASE WHEN cs.real_amt IS NULL AND COALESCE(c.bus_amt,0) + COALESCE(ce.etc_amt,0) = 0 THEN 1 ELSE 0 END AS car_none,
                    COALESCE(g.meal_total,0) + COALESCE(g.admission_total,0) + COALESCE(g.etcamt_total,0) AS guide_cost,
                    COALESCE(g.shopping_cprofit,0) + COALESCE(g.option_cprofit,0) AS event_income,
                    COALESCE(g.input_total,0) AS input_total,
@@ -92,11 +100,13 @@ $sql = "WITH
                 SELECT grand_eCode, sub_eCode, SUM(etc_amt) AS etc_amt
                 FROM hotel_settleetc GROUP BY grand_eCode, sub_eCode
             ) he ON he.grand_eCode = x.grand_eCode AND he.sub_eCode = x.sub_eCode
+            /* 실제: 차량당 1행 설계 → 중복 저장분은 최신 seq_no 1건만 */
             LEFT JOIN (
-                SELECT grand_eCode, sub_eCode, SUM(real_amt) AS real_amt
-                FROM hotel_settlesum WHERE status = 'DONE'
-                GROUP BY grand_eCode, sub_eCode
+                SELECT grand_eCode, sub_eCode, real_amt FROM hotel_settlesum
+                WHERE status = 'DONE' AND seq_no IN (SELECT MAX(seq_no) FROM hotel_settlesum GROUP BY grand_eCode, sub_eCode)
             ) hs ON hs.grand_eCode = x.grand_eCode AND hs.sub_eCode = x.sub_eCode
+            LEFT JOIN (SELECT DISTINCT grand_eCode, sub_eCode FROM hotel_assign) ha
+                   ON ha.grand_eCode = x.grand_eCode AND ha.sub_eCode = x.sub_eCode
             /* 차량 원가 */
             LEFT JOIN (
                 SELECT grand_eCode, sub_eCode, SUM(bus_amt) AS bus_amt
@@ -107,9 +117,8 @@ $sql = "WITH
                 FROM car_settleetc GROUP BY grand_eCode, sub_eCode
             ) ce ON ce.grand_eCode = x.grand_eCode AND ce.sub_eCode = x.sub_eCode
             LEFT JOIN (
-                SELECT grand_eCode, sub_eCode, SUM(real_amt) AS real_amt
-                FROM car_settlesum WHERE status = 'DONE'
-                GROUP BY grand_eCode, sub_eCode
+                SELECT grand_eCode, sub_eCode, real_amt FROM car_settlesum
+                WHERE seq_no IN (SELECT MAX(seq_no) FROM car_settlesum WHERE status = 'DONE' GROUP BY grand_eCode, sub_eCode)
             ) cs ON cs.grand_eCode = x.grand_eCode AND cs.sub_eCode = x.sub_eCode
             /* 가이드 정산: 정산코드(settle_code)가 있어야 유효한 정산.
                한 행사에 정산코드가 여러 개면(재저장 등으로 발생) 대표 1건만 사용해 이중계산 방지.
@@ -158,8 +167,12 @@ $sql = "WITH
                    SUM(ev.guide_cost   * t.pax / ev.ev_pax) AS guide_cost,
                    SUM(ev.event_income * t.pax / ev.ev_pax) AS event_income,
                    SUM(ev.input_total  * t.pax / ev.ev_pax) AS input_total,
-                   MAX(ev.hotel_est) AS hotel_est,
-                   MAX(ev.car_est)   AS car_est
+                   MAX(ev.hotel_est)  AS hotel_est,
+                   MAX(ev.hotel_real) AS hotel_real,
+                   MAX(ev.hotel_none) AS hotel_none,
+                   MAX(ev.car_est)    AS car_est,
+                   MAX(ev.car_real)   AS car_real,
+                   MAX(ev.car_none)   AS car_none
             FROM tcm t
             INNER JOIN ev ON ev.grand_eCode = t.grand_eCode AND ev.sub_eCode = t.sub_eCode
             GROUP BY t.reserveCode
@@ -208,7 +221,11 @@ $sql = "WITH
                SUM(COALESCE(rc.event_income,0))  AS event_income,
                SUM(COALESCE(rc.input_total,0))   AS input_total,
                COALESCE(MAX(rc.hotel_est),0)     AS hotel_est,
+               COALESCE(MAX(rc.hotel_real),0)    AS hotel_real,
+               COALESCE(MAX(rc.hotel_none),0)    AS hotel_none,
                COALESCE(MAX(rc.car_est),0)       AS car_est,
+               COALESCE(MAX(rc.car_real),0)      AS car_real,
+               COALESCE(MAX(rc.car_none),0)      AS car_none,
                COALESCE(MAX(ec.ev_cnt),0)        AS ev_cnt,
                COALESCE(MAX(ec.settled_cnt),0)   AS settled_cnt,
                COALESCE(MAX(ec.complete_cnt),0)  AS complete_cnt,
@@ -239,9 +256,9 @@ if ($rst) {
         $profit = $sales + $event_income - $cost;
         $margin = ($sales > 0) ? ($profit / $sales * 100) : null;
 
-        // 구성 행사 중 예상(정산입력) 금액이 하나라도 섞이면 '예상'
-        $row['hotel_is_real'] = ($row['hotel_est'] == 0);
-        $row['car_is_real']   = ($row['car_est'] == 0);
+        // 원가 구분: 구성 행사 중 미입력 > 예상(정산입력) 섞임 > 실제(settlesum), '' = 해당 없음
+        $row['hotel_kind'] = $row['hotel_none'] > 0 ? '미입력' : ($row['hotel_est'] > 0 ? '예상' : ($row['hotel_real'] > 0 ? '실제' : ''));
+        $row['car_kind']   = $row['car_none'] > 0 ? '미입력' : ($row['car_est'] > 0 ? '예상' : ($row['car_real'] > 0 ? '실제' : ''));
 
         // 가이드정산: 구성 행사 전부 정산코드가 있어야 유효
         $ev_cnt  = (int)$row['ev_cnt'];
@@ -305,9 +322,9 @@ if (isset($_GET['action']) && $_GET['action'] == 'export') {
             (int)$r['guide_cnt'],
             round($r['sales_total'], 2),
             round($r['hotel_cost'], 2),
-            $r['hotel_is_real'] ? '실제' : '예상',
+            $r['hotel_kind'],
             round($r['car_cost'], 2),
-            $r['car_is_real'] ? '실제' : '예상',
+            $r['car_kind'],
             round($r['guide_cost'], 2),
             round($r['event_income'], 2),
             round($r['input_total'], 2),
@@ -325,6 +342,11 @@ if (isset($_GET['action']) && $_GET['action'] == 'export') {
 }
 
 function pf_money($v) { return number_format((float)$v, 2); }
+function pf_kind_badge($kind) { // 원가 구분 배지: 실제 / 예상 / 미입력
+    if ($kind == '') return '';
+    $cls = array('실제' => 'pf-badge-real', '예상' => 'pf-badge-est', '미입력' => 'pf-badge-none');
+    return '<span class="label '.$cls[$kind].'"'.($kind == '미입력' ? ' title="원가 입력이 없는 행사 포함 - 원가 누락 가능"' : '').'>'.$kind.'</span>';
+}
 ?>
 <style>
 .pf-summary .panel-body{padding:10px 14px;}
@@ -443,7 +465,8 @@ function pf_money($v) { return number_format((float)$v, 2); }
       <div class="panel-heading">
         복합상품별 손익 <h6>Profit by Package</h6>
         <span class="pf-note">원가: <span class="label pf-badge-real">실제</span> = 구성 행사 전부 정산완료(settlesum) 금액,
-        <span class="label pf-badge-est">예상</span> = 정산입력(단가×수량) 금액 포함</span>
+        <span class="label pf-badge-est">예상</span> = 정산입력(단가×수량) 금액 포함,
+        <span class="label pf-badge-none">미입력</span> = 원가 입력 없는 행사 포함(호텔은 호텔배정 행사만)</span>
       </div>
       <div class="panel-body pf-scroll">
         <table class="table table-bordered table-condensed table-hover pf-table js-sortable" style="margin:0;">
@@ -497,15 +520,11 @@ function pf_money($v) { return number_format((float)$v, 2); }
               <td class="num"><a href="#" class="pf-detail" data-type="sales" data-label="매출"><?=pf_money($r['sales_total'])?></a></td>
               <td class="num">
                 <a href="#" class="pf-detail" data-type="hotel" data-label="호텔원가"><?=pf_money($r['hotel_cost'])?></a>
-                <?php if ($r['hotel_cost'] != 0): ?>
-                  <span class="label <?=$r['hotel_is_real'] ? 'pf-badge-real' : 'pf-badge-est'?>"><?=$r['hotel_is_real'] ? '실제' : '예상'?></span>
-                <?php endif; ?>
+                <?=pf_kind_badge($r['hotel_kind'])?>
               </td>
               <td class="num">
                 <a href="#" class="pf-detail" data-type="car" data-label="차량원가"><?=pf_money($r['car_cost'])?></a>
-                <?php if ($r['car_cost'] != 0): ?>
-                  <span class="label <?=$r['car_is_real'] ? 'pf-badge-real' : 'pf-badge-est'?>"><?=$r['car_is_real'] ? '실제' : '예상'?></span>
-                <?php endif; ?>
+                <?=pf_kind_badge($r['car_kind'])?>
               </td>
               <td class="num">
                 <a href="#" class="pf-detail" data-type="guide" data-label="가이드경비"><?=pf_money($r['guide_cost'])?></a>

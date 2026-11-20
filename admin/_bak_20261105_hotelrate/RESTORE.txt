@@ -1,0 +1,66 @@
+호텔 기간별 요금 + 호텔정산 자동화(배정 연동 · 일괄 자동정산) — 되돌리기 안내
+작업일 2026-11-05 (같은 날 _bak_20261105 폴더는 다른 작업분이니 섞지 말 것)
+
+────────────────────────────────────────────────────────
+[0] 가장 빠른 방법 — 기능만 끄기
+────────────────────────────────────────────────────────
+admin/include/dong_func.php
+
+    if (!defined('HOTEL_RATE_AUTO')) define('HOTEL_RATE_AUTO', true);
+                                                               ^^^^ false 로
+
+  → 호텔등록 화면의 기간별 요금 칸 숨김
+  → 호텔배정 저장/삭제/방갯수 변경 시 호텔정산 자동반영 중단
+  → 정산화면 RATE 자동채움 / 기타비용 단가 자동 중단
+  → 호텔정산 목록의 일괄 자동정산 패널 숨김, hotel_autosettle.php 동작 중단
+  DB 는 그대로 둬도 된다. (hotel_rate 는 신규 테이블이라 기존 쿼리에 영향 없음)
+
+
+────────────────────────────────────────────────────────
+[1] 코드 완전 복원  (Git Bash, admin 폴더에서)
+────────────────────────────────────────────────────────
+    B=_bak_20261105_hotelrate
+    cp -f $B/include/dong_func.php include/
+    cp -f $B/hotel_cal2.php $B/hotel_save.php $B/hotel_settle.php $B/hotel_regi_m.php $B/hotel_assign_m.php $B/update_cnt.php .
+    rm -f hotel_autosettle.php setup_hotel_rate.php tests/hotel_rate_check.php
+
+PowerShell:
+    $B = '_bak_20261105_hotelrate'
+    Copy-Item $B\include\dong_func.php include\ -Force
+    'hotel_cal2.php','hotel_save.php','hotel_settle.php','hotel_regi_m.php','hotel_assign_m.php','update_cnt.php' | % { Copy-Item "$B\$_" . -Force }
+    Remove-Item hotel_autosettle.php, setup_hotel_rate.php, tests\hotel_rate_check.php -Force
+
+※ 작업 시작 시점 파일(커밋 안 된 수정분 포함)이다. git checkout 보다 이쪽이 안전하다.
+※ hotel_rate.php(기초관리 별도 화면)는 중간에 hotel_regi_m.php 로 합쳐져 삭제됨 — 복원 대상 아님.
+
+
+────────────────────────────────────────────────────────
+[2] DB 되돌리기 (필요할 때만)
+────────────────────────────────────────────────────────
+rollback.sql             -- hotel_rate 삭제 (+ 예전 기초관리 메뉴 1-1-4 가 남아 있으면 삭제)
+hotel_rate_before.sql    -- 정산 3개 테이블 + 메뉴/코드 테이블을 작업 전 상태로 전체 복원
+                            (주의: 작업 후 입력한 정산·메뉴권한도 함께 사라진다)
+
+    C:\laragon\bin\mysql\mysql-8.4.3-winx64\bin\mysql.exe -h 127.0.0.1 -u root hellousa_local < rollback.sql
+
+자동정산으로 생긴 정산만 지우려면 rollback.sql 안의 주석 쿼리 참고.
+
+
+────────────────────────────────────────────────────────
+[3] 바뀐 파일
+────────────────────────────────────────────────────────
+신규  hotel_autosettle.php      일괄 자동정산 미리보기/저장 AJAX
+신규  setup_hotel_rate.php      1회용 — hotel_rate 테이블 생성 (실행 후 삭제)
+신규  tests/hotel_rate_check.php  기간별 요금 계산 검증 (CLI 전용, 트랜잭션 롤백 — 서버 업로드 불필요)
+수정  include/dong_func.php     스위치, getHotelRate / buildHotelAutoSettle / hotelSettleState /
+                                saveHotelAutoSettle / syncHotelSettleFromAssign, 상태 'AUTO' 표시
+수정  hotel_regi_m.php          호텔 수정화면 아래 '기간별 요금' 등록/수정/삭제
+수정  hotel_assign_m.php        호텔배정 저장·삭제 시 호텔정산 자동반영 + 안내 메시지
+수정  update_cnt.php            방갯수 변경 시 호텔정산 자동반영 + 안내 메시지
+수정  hotel_cal2.php            객실요금 자동채움, 기타비용 단가 자동, 금액 자동계산
+수정  hotel_save.php            저장 시 status='DONE' (담당자 확정)
+수정  hotel_settle.php          체크박스 + 기타비용 지정 + 실시간 요약 + 일괄 자동정산
+
+신규 DB
+  hotel_rate 테이블
+  hotel_settlesum.status = 'AUTO'  (자동정산분, 담당자가 정산화면에서 저장하면 'DONE')

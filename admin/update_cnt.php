@@ -72,6 +72,15 @@
 	     }
 	     $stmt->close(); // Close statement for MySQLi
 
+	     // 방갯수 변경 → 호텔정산 자동 반영 (호텔등록 기간별 요금, 담당자 저장분은 제외)
+	     if ($success) {
+	         $hr_row = $dbConn->query("SELECT grand_eCode, sub_eCode FROM hotel_assign WHERE seq_no=".(int)$seq_no)->fetch_assoc();
+	         if ($hr_row) {
+	             $hr_sync = syncHotelSettleFromAssign($hr_row['grand_eCode'], $hr_row['sub_eCode']);
+	             if ($hr_sync != '') $response['message'] .= "\n".$hr_sync;
+	         }
+	     }
+
 	   
 
 	 } else {

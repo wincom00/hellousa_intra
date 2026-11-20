@@ -19,8 +19,8 @@ $filename = isset($_GET['filename'])  ? $_GET['filename']
 $filename = (string)$filename;
 
 // 3) 경로 조작 차단: 순수 파일명만 허용
-$filename = basename($filename);
-if ($filename === '' || $filename[0] === '.') {
+//    basename()은 로케일 의존이라 라이브(PHP 7.0, C 로케일)에서 앞쪽 한글을 잘라먹는다 → 구분자를 직접 거부
+if ($filename === '' || $filename[0] === '.' || strpbrk($filename, "/\\\0") !== false) {
     header('HTTP/1.1 400 Bad Request');
     echo '잘못된 요청입니다.';
     exit;
@@ -38,10 +38,10 @@ if ($uploadDir === false || $target === false ||
 }
 
 // 5) 헤더 인젝션 방지용 파일명 정리 후 전송
-$safeDownloadName = str_replace(array("\r", "\n", '"'), '', basename($target));
+$safeDownloadName = str_replace(array("\r", "\n", '"'), '', $filename);
 
 header('Content-Type: application/octet-stream');
-header('Content-Disposition: attachment; filename="' . $safeDownloadName . '"');
+header('Content-Disposition: attachment; filename="' . $safeDownloadName . '"; filename*=UTF-8\'\'' . rawurlencode($filename));
 header('Content-Transfer-Encoding: binary');
 header('Content-Length: ' . filesize($target));
 header('Pragma: no-cache');

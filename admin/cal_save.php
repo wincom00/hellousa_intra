@@ -132,8 +132,14 @@
 
           //3. HOTEL SETTLE SUM TABLE
 
+          // 화면 seq가 비어 넘어와도 기존 합계행을 갱신 → 차량당 1행 유지 (중복 INSERT 방지)
+          if(!($hotel_sumseq > 0)){
+              $rstS = mysqli_query($dbConn,"SELECT seq_no FROM car_settlesum WHERE grand_eCode = '$grand_eCode' AND sub_eCode = '$sub_eCode' ORDER BY seq_no DESC LIMIT 1");
+              if($rstS && ($rowS = mysqli_fetch_assoc($rstS))) $hotel_sumseq = (int)$rowS['seq_no'];
+          }
+
           if($hotel_sumseq >0 ){
-              
+
               $query = "UPDATE car_settlesum SET
               base_rate = '$m_rate',	
               real_amt = '$totalPayment',

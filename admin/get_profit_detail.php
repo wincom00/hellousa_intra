@@ -83,7 +83,8 @@ if ($pfd_pk != '') {
                             ON b.grand_eCode = k.grand_eCode AND b.sub_eCode = k.sub_eCode
                      LEFT JOIN (SELECT grand_eCode, sub_eCode, SUM(etc_amt) AS a FROM {$t}_settleetc GROUP BY grand_eCode, sub_eCode) e
                             ON e.grand_eCode = k.grand_eCode AND e.sub_eCode = k.sub_eCode
-                     LEFT JOIN (SELECT grand_eCode, sub_eCode, SUM(real_amt) AS r FROM {$t}_settlesum WHERE status = 'DONE' GROUP BY grand_eCode, sub_eCode) s
+                     LEFT JOIN (SELECT grand_eCode, sub_eCode, real_amt AS r FROM {$t}_settlesum
+                                WHERE seq_no IN (SELECT MAX(seq_no) FROM {$t}_settlesum WHERE status = 'DONE' GROUP BY grand_eCode, sub_eCode)) s
                             ON s.grand_eCode = k.grand_eCode AND s.sub_eCode = k.sub_eCode";
         $note = '· 차량별로 정산완료 금액(실제)이 있으면 그 금액, 없으면 정산입력 금액(예상)을 행사 금액으로 씁니다.<br>';
     } else if ($pfd_type == 'guide' || $pfd_type == 'income') {
@@ -228,19 +229,22 @@ if ($pfd_type == 'hotel' || $pfd_type == 'car') {
                                 FROM code_base WHERE lvcode1 = '$etcGroup' AND lvcode2 <> '00'
                                 GROUP BY lvcode2, lvcode3) c ON c.code = s.etc_code
                      WHERE s.grand_eCode = '$pfd_gc' ORDER BY s.seq_no");
-    $sums = pfd_rows("SELECT sub_eCode, real_amt, memo, status, wdate
-                      FROM {$pfd_type}_settlesum WHERE grand_eCode = '$pfd_gc' ORDER BY seq_no");
+    $sums = pfd_rows("SELECT seq_no, sub_eCode, real_amt, memo, status, wdate
+                      FROM {$pfd_type}_settlesum WHERE grand_eCode = '$pfd_gc' ORDER BY seq_no DESC");
 
     $blocks = array(); $total = 0;
     foreach ($pfd_subs as $sub) {
-        $real = 0; $hasReal = false; $exp = 0;
-        foreach ($sums as $s) if ($s['sub_eCode'] == $sub && $s['status'] == 'DONE') { $hasReal = true; $real += (float)$s['real_amt']; }
+        // 차량당 1행 설계 → DONE 중 최신 seq_no 1건만 반영 (리스트 쿼리와 동일)
+        $use = null; $exp = 0;
+        foreach ($sums as $s) if ($use === null && $s['sub_eCode'] == $sub && $s['status'] == 'DONE') $use = $s;
+        $hasReal = ($use !== null);
+        $real = $hasReal ? (float)$use['real_amt'] : 0;
         $items = array();
         foreach ($sums as $s) {
             if ($s['sub_eCode'] != $sub) continue;
-            $done = ($s['status'] == 'DONE');
             $items[] = array('실제(정산완료)', trim($s['memo'].' '.substr($s['wdate'], 0, 10)), '', '', $s['real_amt'],
-                             $done ? true : '상태 '.$s['status'].' - 제외');
+                             ($hasReal && $s['seq_no'] == $use['seq_no']) ? true
+                             : ($s['status'] == 'DONE' ? '중복 저장 - 최신 1건만 반영' : '상태 '.$s['status'].' - 제외'));
         }
         foreach (array(array($isHotel ? '예상-객실' : '예상-버스', $base), array('예상-기타비용', $etc)) as $grp) {
             foreach ($grp[1] as $s) {
@@ -252,10 +256,11 @@ if ($pfd_type == 'hotel' || $pfd_type == 'car') {
         }
         $applied = $hasReal ? $real : $exp;
         $total += $applied;
-        $blocks[] = array('title' => '차량 '.pfd_h($sub).' → '.($hasReal ? '실제' : '예상').' '.pfd_m($applied), 'items' => $items);
+        $blocks[] = array('title' => '차량 '.pfd_h($sub).' → '.($hasReal ? '실제' : ($exp != 0 ? '예상' : '입력 없음')).' '.pfd_m($applied), 'items' => $items);
     }
     pfd_render(array('구분', '내용', '단가', ($isHotel ? '객실수' : '대수'), '금액', '적용'), $blocks, $total,
         '· 차량(서브코드)별로 정산완료 금액(' . $pfd_type . '_settlesum, 상태 DONE)이 있으면 그 금액을, 없으면 정산입력 금액(단가×수량 + 기타비용)을 반영합니다.<br>'
+      . '· 정산완료 금액이 중복 저장된 차량은 최신 1건만 반영합니다.<br>'
       . '· 금액 0인 입력줄은 생략했습니다.');
     exit;
 }

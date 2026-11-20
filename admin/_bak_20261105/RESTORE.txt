@@ -1,0 +1,64 @@
+호텔 기간별 요금 + 배정시 정산 자동화 — 되돌리기 안내
+작업일 2026-11-05
+
+────────────────────────────────────────────────────────
+[0] 가장 빠른 방법 — 파일 안 건드리고 기능만 끄기
+────────────────────────────────────────────────────────
+admin/include/dong_func.php 상단
+
+    define('HOTEL_RATE_SYNC', true);
+                              ^^^^  <-- false 로 바꾸면 끝
+
+  → 배정시 정산 자동저장 중단
+  → 배정 화면의 단가/금액 칸 숨김
+  → 정산 화면은 예전처럼 전부 수동 입력
+  DB 는 그대로 둬도 아무 문제 없다. (신규 테이블/컬럼은 기존 쿼리를 깨지 않음)
+
+
+────────────────────────────────────────────────────────
+[1] 코드 완전 복원
+────────────────────────────────────────────────────────
+Git Bash 에서 admin 폴더로 이동한 뒤:
+
+    cp -f _bak_20261105/include/dong_func.php include/
+    cp -f _bak_20261105/hotel_regi.php _bak_20261105/hotel_assign_m.php _bak_20261105/update_cnt.php _bak_20261105/hotel_cal2.php _bak_20261105/hotel_save.php .
+    rm -f hotel_rate.php get_hotel_rate.php
+
+PowerShell 이면:
+
+    Copy-Item _bak_20261105\include\dong_func.php include\ -Force
+    Copy-Item _bak_20261105\*.php . -Force -Exclude index.php
+    Remove-Item hotel_rate.php, get_hotel_rate.php -Force
+
+※ 이 백업은 2026-11-05 작업 시작 시점의 파일이다.
+  그 시점에 커밋되지 않은 수정분까지 그대로 들어 있으므로,
+  git checkout 보다 이 폴더에서 복원하는 쪽이 안전하다.
+
+
+────────────────────────────────────────────────────────
+[2] DB 되돌리기 (필요할 때만)
+────────────────────────────────────────────────────────
+rollback.sql 실행                     -- hotel_rate 삭제 + auto_yn 컬럼 삭제
+hotel_settle_before.sql 실행          -- 정산 3개 테이블을 작업 전 상태로 전체 복원
+                                         (주의: 작업 후 입력한 정산도 함께 사라진다)
+
+    C:\laragon\bin\mysql\mysql-8.4.3-winx64\bin\mysql.exe -h 127.0.0.1 -u root hellousa_local < rollback.sql
+
+운영 DB(AWS RDS dbs13437728)에 적용했다면 같은 파일을 운영 접속정보로 실행한다.
+
+
+────────────────────────────────────────────────────────
+[3] 이번 작업에서 바뀐 파일
+────────────────────────────────────────────────────────
+신규  hotel_rate.php            호텔별 기간별 원가 단가 화면
+신규  get_hotel_rate.php        단가 조회 AJAX
+수정  include/dong_func.php     getHotelRate / syncHotelSettle / recalcHotelSettleSum 추가
+수정  hotel_regi.php            호텔 목록에 [요금] 링크
+수정  hotel_assign_m.php        배정 목록에 단가/금액 칸, 저장·삭제시 정산 동기화
+수정  update_cnt.php            방갯수 변경시 정산 동기화
+수정  hotel_cal2.php            기타비용 단가 자동/금액 자동계산, 출처 뱃지
+수정  hotel_save.php            auto_yn 기록, 합계 서버 재계산, 로그인 체크
+
+신규 DB
+  hotel_rate 테이블
+  hotel_settle.auto_yn 컬럼  ('Y'=자동계산행, 'N'=사람이 저장한 행)

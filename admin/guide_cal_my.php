@@ -1,7 +1,7 @@
 <?php
     include "include/header.php";
     
-	if ($_COOKIE[MEMLOGIN_ADMIN_HELLO] !="") {
+	if ($_COOKIE['MEMLOGIN_ADMIN_HELLO'] !="") {
 	} else {
         echo "<meta http-equiv='refresh' content='0; url=./login.php'>";
 		exit;
@@ -14,7 +14,7 @@
 		exit;
     }
 
-    $seqno = $_GET['number'];
+    $seqno = (int)$_GET['number'];
 
     //투어 기본 정보
     $query = "SELECT a.*, (SELECT kor_name FROM member_list where userid = a.guide_id AND division ='guide') AS kr_name,
@@ -22,6 +22,13 @@
     FROM tour_guide a WHERE a.seq_no = $seqno ";
     $rst1 = mysqli_query($dbConn,$query);
     $data_row = mysqli_Fetch_assoc($rst1);
+
+    // 가이드 본인 배정 행사만 (guide_mysettle.php 목록 조건과 동일: tour_guide.guide_id)
+    if (!$data_row || $data_row['guide_id'] != $user_dbinfo['userid']) {
+		Misc::jvAlert("본인 배정 행사만 조회할 수 있습니다.","");
+		echo "<meta http-equiv='refresh' content='0; url=guide_mysettle.php?division=6&pdx=2&sub=10'>";
+		exit;
+    }
 
     //가이드 정산코드
     $guide_code = getGuideCode($data_row[grand_eCode],$data_row[sub_eCode]);
@@ -41,7 +48,7 @@
 	$check_rows = [];
 	while($r = mysqli_fetch_assoc($chk_rst)) $check_rows[] = $r;
 
-	$guide_memo = $data_row00['guide_memo'];
+	$guide_memo = $data_row00['g_memo'];
 
     //본행사인원
     $mainPcnt = getGuideMainPcnt($data_row['p_code'],$data_row['stDate']);
@@ -53,6 +60,8 @@
 	$totPcnt = $mainPcnt['p_cnt'] + $subPcnt['p_cnt'];
     if($data_row00['reg_status'] == 'COMPLETE') $disabled = 'disabled';
     else $disabled='';
+    // 가이드 제출취소: 제출완료 후 회계/대표 확인 전까지만 (guide_save1.php 에서도 동일 검사)
+    $can_repcan = ($data_row00['reg_status'] == 'COMPLETE' && $data_row00['finance_st'] != 'V' && $data_row00['ceo_st'] != 'V');
 
     //조식,중식,석식
     $meal_b1=0;$meal_b2=0;$meal_b3=0;$meal_l1=0;$meal_l2=0;$meal_l3=0;$meal_d1=0;$meal_d2=0;$meal_d3=0;
@@ -171,6 +180,11 @@
 						<button type="button" class="btn btn-xs btn-default js-delete" <?=$disabled?>>삭제</button>
                         <button type="button" class="btn btn-xs btn-default js-print" >프린트</button>
                         
+					</div>
+					<div class="col-sm-3 text-right">
+					<?php if ($can_repcan) { ?>
+						<button type="button" class="btn btn-xs btn-default js-report2">제출취소</button>
+					<?php } ?>
 					</div>
 					
 				</div>
@@ -1213,7 +1227,7 @@
                                                 </div>
 												<div class="col-sm-1 button-minus">
 												 <button type="button" class="btn btn-default btn-xs js-removegButton"><span class="glyphicon glyphicon-minus" aria-hidden="true"></span></button>
-												</div>1
+												</div>
                                             </div>
                                         </td>
                                         <input type="hidden" name="g_seqno" value="<?=$datarow['seq_no']?>">
@@ -1289,6 +1303,7 @@
 													</tfoot>
 												  </table>
 												</div>
+												 <textarea name="guide_memo" style="width:100%;height:120px;" placeholder="메모 및 기타내용"><?=htmlspecialchars($guide_memo)?></textarea>
 											  </div>
 											</div>
 
@@ -2072,7 +2087,7 @@
 							return false;
 						}else{
 							alert("저장했습니다!!");
-							location.href = "guide_settle.php?division=6&pdx=2&sub=10";
+							location.href = "guide_mysettle.php?division=6&pdx=2&sub=10";
 						}
 					}
 				});
@@ -2137,7 +2152,7 @@
 
                             return false;
                         }else{
-                            location.href = "guide_settle.php?division=6&pdx=2&sub=10";
+                            location.href = "guide_mysettle.php?division=6&pdx=2&sub=10";
                         }
                     }
                 });
@@ -2167,70 +2182,8 @@
 
                             return false;
                         }else{
-                           location.href = "guide_settle.php?division=6&pdx=2&sub=10";
+                           location.href = "guide_mysettle.php?division=6&pdx=2&sub=10";
                         }
-                    }
-                });
-            }
-        });
-		//회계확인
-        $(document).on("click",".js-save2",function(e) { 
-
-            if(confirm("회계확인을 하시겠습니까?") == true) {
-                $("#mode").val("finance");
-
-                var form = $("#frnName").closest("form");
-                var formData = new FormData(form[0]);
-
-                $.ajax({
-                    type: 'POST',
-                    url: 'guide_save1.php',
-                    data: formData,
-                    cache:false,
-                    processData: false,
-                    contentType: false,
-                    success: function (response) {
-                        var msg = response.split("/");
-
-                        if(msg[0] =='0') {
-                            alert(msg[1]);
-
-                            return false;
-                        }else{
-							alert("확인하셨습니다.!");
-                           // location.href = "guide_settle.php?division=6&pdx=2&sub=10";
-                        }
-                    }
-                });
-            }
-        });
-		//대표확인
-        $(document).on("click",".js-save3",function(e) { 
-
-            if(confirm("대표이사확인을 하시겠습니까?") == true) {
-                $("#mode").val("ceo");
-                
-                var form = $("#frnName").closest("form");
-                var formData = new FormData(form[0]);
-
-                $.ajax({
-                    type: 'POST',
-                    url: 'guide_save1.php',
-                    data: formData,
-                    cache:false,
-                    processData: false,
-                    contentType: false,
-                    success: function (response) {
-                        var msg = response.split("/");
-
-                        if(msg[0] =='0') {
-                            alert(msg[1]);
-
-                            return false;
-                        }else{
-							alert("확인하셨습니다.!");
-                            //location.href = "guide_settle.php?division=6&pdx=2&sub=10";                        
-						}
                     }
                 });
             }
@@ -2247,7 +2200,7 @@
             var page = "export.php?data=" + excel_data;  
             window.location = page;  */
 
-            window.open('guide_cal_m_print.php?number=<?=$_GET[number]?>');
+            window.open('guide_cal_m_print.php?number=<?=$seqno?>');
         });   
 
 	</script>

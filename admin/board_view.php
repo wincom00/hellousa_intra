@@ -118,9 +118,9 @@
 								<?php } ?>
 								<tr bgcolor="#FFFFFF"> 
 								  <td height="25" align="center" bgcolor="#FBFBFB">첨부파일 1</td>
-								  <td >&nbsp;&nbsp;<a href="download.php?filename=<?= $board_row2[userfile1] ?>"><img src='./img/database_save.png' align=absmiddle> <?= $board_row2[userfile1] ?></a></td>
+								  <td >&nbsp;&nbsp;<a href="download.php?filename=<?= urlencode($board_row2['userfile1']) ?>"><img src='./img/database_save.png' align=absmiddle> <?= $board_row2[userfile1] ?></a></td>
 								  <td align="center" bgcolor="#FBFBFB">첨부파일 2</td>
-								  <td >&nbsp;&nbsp;<a href="download.php?filename=<?= $board_row2[userfile2] ?>"><img src='./img/database_save.png' align=absmiddle> <?= $board_row2[userfile2] ?></a></td>
+								  <td >&nbsp;&nbsp;<a href="download.php?filename=<?= urlencode($board_row2['userfile2']) ?>"><img src='./img/database_save.png' align=absmiddle> <?= $board_row2[userfile2] ?></a></td>
 								</tr>
 								<tr bgcolor="#FFFFFF"> 
 								  <td height="25" align="center" bgcolor="#FBFBFB">내용</td>

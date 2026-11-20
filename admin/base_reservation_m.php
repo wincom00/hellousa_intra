@@ -1979,19 +1979,19 @@
 							<td colspan="2" class="active text-center formHeader">아웃바운드 첨부파일</td>
 							<td >
 							   
-								&nbsp;<? if($reserve_info['userfile1']): ?><a href='download.php?filename=<?= $reserve_info['userfile1'] ?>'><?= $reserve_info['userfile1'] ?></a><? endif; ?><input type="file" name="userfile1"  class='form-control'><input type="checkbox" id="photo_del1" name="photo_del1" value="1">삭제 
+								&nbsp;<? if($reserve_info['userfile1']): ?><a href='download.php?filename=<?= urlencode($reserve_info['userfile1']) ?>'><?= $reserve_info['userfile1'] ?></a><? endif; ?><input type="file" name="userfile1"  class='form-control'><input type="checkbox" id="photo_del1" name="photo_del1" value="1">삭제 
 							</td>
 							<td >
 							   
-								&nbsp;<? if($reserve_info['userfile2']): ?><a href='download.php?filename=<?= $reserve_info['userfile2'] ?>'><?= $reserve_info['userfile2'] ?></a><? endif; ?><input type=file name=userfile2  class='form-control' value="<?= $reserve_info['userfile2'] ?>"><input type="checkbox" id="photo_del2" name="photo_del2" value="1">삭제 
+								&nbsp;<? if($reserve_info['userfile2']): ?><a href='download.php?filename=<?= urlencode($reserve_info['userfile2']) ?>'><?= $reserve_info['userfile2'] ?></a><? endif; ?><input type=file name=userfile2  class='form-control' value="<?= $reserve_info['userfile2'] ?>"><input type="checkbox" id="photo_del2" name="photo_del2" value="1">삭제 
 							</td>
 							<td >
 							   
-								&nbsp;<? if($reserve_info['userfile3']): ?><a href='download.php?filename=<?= $reserve_info['userfile3'] ?>'><?= $reserve_info['userfile3'] ?></a><? endif; ?><input type=file name=userfile3  class='form-control' value="<?= $reserve_info['userfile3'] ?>"><input type="checkbox" id="photo_del3" name="photo_del3" value="1">삭제 
+								&nbsp;<? if($reserve_info['userfile3']): ?><a href='download.php?filename=<?= urlencode($reserve_info['userfile3']) ?>'><?= $reserve_info['userfile3'] ?></a><? endif; ?><input type=file name=userfile3  class='form-control' value="<?= $reserve_info['userfile3'] ?>"><input type="checkbox" id="photo_del3" name="photo_del3" value="1">삭제 
 							</td>
 							<td colspan="4">
 							   
-								&nbsp;<? if($reserve_info['userfile4']): ?><a href='download.php?filename=<?= $reserve_info['userfile4'] ?>'><?= $reserve_info['userfile4'] ?></a><? endif; ?><input type=file name=userfile4  class='form-control' value="<?= $reserve_info['userfile4'] ?>"><input type="checkbox" id="photo_del4" name="photo_del4" value="1">삭제 
+								&nbsp;<? if($reserve_info['userfile4']): ?><a href='download.php?filename=<?= urlencode($reserve_info['userfile4']) ?>'><?= $reserve_info['userfile4'] ?></a><? endif; ?><input type=file name=userfile4  class='form-control' value="<?= $reserve_info['userfile4'] ?>"><input type="checkbox" id="photo_del4" name="photo_del4" value="1">삭제 
 							</td>
 						</tr>
 						<tr>

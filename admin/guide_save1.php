@@ -3,6 +3,44 @@
       include("include/dbconn.php");
       include("include/func_list.php");
 	  include("include/dong_func.php");
+
+      // 로그인 사용자 (inc_base.php 를 쓰지 않으므로 직접 해석)
+      $user_info = isset($_COOKIE['MEMLOGIN_ADMIN_HELLO']) ? getinfo_Member($_COOKIE['MEMLOGIN_ADMIN_HELLO']) : false;
+      $user_dbinfo = !empty($user_info['user_id']) ? getinfo_dbMember($user_info['user_id']) : null;
+      if (!$user_dbinfo) { echo '0/로그인이 필요합니다.'; exit; }
+
+      // 가이드 계정: 본인 배정 행사의 저장/삭제/제출/제출취소만 허용 (회계·대표 확인 불가)
+      if ($user_dbinfo['division'] == 'guide') {
+          $g_mode = $_POST['mode'];
+          $g_uid  = mysqli_real_escape_string($dbConn, $user_dbinfo['userid']);
+          $g_gec  = mysqli_real_escape_string($dbConn, $_POST['grand_eCode']);
+          $g_sec  = mysqli_real_escape_string($dbConn, $_POST['sub_eCode']);
+          $g_scd  = mysqli_real_escape_string($dbConn, $_POST['settle_code']);
+
+          $g_rst = mysqli_query($dbConn, "SELECT 1 FROM tour_guide WHERE grand_eCode = '$g_gec' AND sub_eCode = '$g_sec' AND guide_id = '$g_uid' LIMIT 1");
+          if (!in_array($g_mode, array('save', 'delete', 'report', 'repcan')) || !$g_rst || mysqli_num_rows($g_rst) == 0) {
+              echo '0/권한이 없습니다.'; exit;
+          }
+
+          $g_sm = array();
+          if ($g_scd != '') {
+              $g_rst = mysqli_query($dbConn, "SELECT grand_eCode, sub_eCode, reg_status, finance_st, ceo_st FROM guide_setmaster WHERE settle_code = '$g_scd' LIMIT 1");
+              $g_sm = $g_rst ? mysqli_fetch_assoc($g_rst) : null;
+              // 다른 행사의 정산코드를 끼워 넣는 경우 차단 (신규 저장 전이라 마스터가 없으면 통과)
+              if ($g_sm && ($g_sm['grand_eCode'] != $_POST['grand_eCode'] || $g_sm['sub_eCode'] != $_POST['sub_eCode'])) {
+                  echo '0/권한이 없습니다.'; exit;
+              }
+          }
+
+          $g_done = (isset($g_sm['reg_status']) && $g_sm['reg_status'] == 'COMPLETE');
+          if ($g_mode == 'repcan') {
+              if (!$g_done || $g_sm['finance_st'] == 'V' || $g_sm['ceo_st'] == 'V') {
+                  echo '0/회계확인 전의 제출완료 건만 제출취소할 수 있습니다.'; exit;
+              }
+          } else if ($g_done) {
+              echo '0/제출완료된 정산은 수정할 수 없습니다.'; exit;
+          }
+      }
       
       //조식
       $bfDate = $_POST['bfDate'];

@@ -1,5 +1,10 @@
 <?php
+    if (session_status() === PHP_SESSION_NONE) session_start();
     include "include/header.php";
+    if (empty($_SESSION['hotel_settle_csrf'])) $_SESSION['hotel_settle_csrf'] = bin2hex(random_bytes(32));
+    if (empty($user_dbinfo['userid']) || !hasMenuAccess(6, 1, 10)) {
+        exit('호텔정산 권한이 없습니다.');
+    }
     
     if ($_COOKIE['MEMLOGIN_ADMIN_HELLO'] !="") {
     } else {
@@ -7,7 +12,7 @@
         exit;
     }
 
-    $seqno = $_GET['number'];
+    $seqno = (int)$_GET['number'];
 
     //투어 기본 정보
     $qry1 = "SELECT a.*, (SELECT kor_name FROM member_list where userid = a.guide_id AND division ='guide') AS kr_name,
@@ -32,9 +37,32 @@
     $rst3 = $dbConn->query($qry3);
 
     // HOTEL SETTLE SUM 정보
-    $qry4 = "SELECT * FROM hotel_settlesum WHERE grand_eCode = '$data_row[grand_eCode]' AND sub_eCode = '$data_row[sub_eCode]' ";
+    $qry4 = "SELECT * FROM hotel_settlesum WHERE grand_eCode = '$data_row[grand_eCode]' AND sub_eCode = '$data_row[sub_eCode]' ORDER BY seq_no DESC "; // 중복 저장분이 있으면 최신 1건 (손익 리포트와 동일)
     $rst4 = $dbConn->query($qry4);
     $hotel_sum_data = mysqli_fetch_assoc($rst4);
+    $hc_status = getHotelStStatus($data_row['grand_eCode'], $data_row['sub_eCode'], $data_row['stDate']);
+    $hc_pending = $hotel_sum_data && in_array($hotel_sum_data['status'], array('AUTO', 'WAIT'), true);
+
+    // 호텔등록 기간별 요금 기반 자동계산 — 정산 미등록 시 호텔배정 날짜별 행으로 자동채움 + 기타비용 단가표(JS)
+    $hc_auto = buildHotelAutoSettle($data_row['grand_eCode'], $data_row['sub_eCode']);
+    $hc_etcRates = array();
+    if (hotelRateReady()) {
+        $hc_stay = array();   // 호텔별 첫 숙박일 (배정에 없는 호텔은 행사 시작일)
+        foreach ($hc_auto['days'] as $hc_d) {
+            if (!isset($hc_stay[$hc_d['h_code']])) $hc_stay[$hc_d['h_code']] = $hc_d['stay_date'];
+        }
+        $hc_codes = array();
+        $hc_rst = getEtcCostSelect();
+        while ($hc_c = mysqli_fetch_assoc($hc_rst)) $hc_codes[] = $hc_c['lvcode2'].$hc_c['lvcode3'];
+        $hc_rst = getHotelList();
+        while ($hc_h = mysqli_fetch_assoc($hc_rst)) {
+            $hc_sd = isset($hc_stay[$hc_h['h_code']]) ? $hc_stay[$hc_h['h_code']] : $data_row['stDate'];
+            foreach ($hc_codes as $hc_code) {
+                $hc_r = getHotelRate($hc_h['h_code'], $hc_code, $hc_sd);
+                if ($hc_r) $hc_etcRates[$hc_h['h_code'].'|'.$hc_code] = (float)$hc_r['rate'];
+            }
+        }
+    }
 
 ?>
     <div id="contentwrapper" class="reservationDetailForm">
@@ -49,6 +77,7 @@
 
             <form name="frnName" id="frnName" method="post" action="">
                 <input type="hidden" name="mode" id="mode" value="save">
+                <input type="hidden" name="csrf_token" value="<?=htmlspecialchars($_SESSION['hotel_settle_csrf'], ENT_QUOTES)?>">
                 <input type="hidden" name="grand_eCode" id="grand_eCode" value="<?=$data_row['grand_eCode']?>">
                 <input type="hidden" name="sub_eCode" id="sub_eCode" value="<?=$data_row['sub_eCode']?>"> 
                 <input type="hidden" name="m_rate_h" id="m_rate_h" value="<?=$data_row['base_rate']?>">
@@ -56,7 +85,12 @@
 
                 <div class="row no-nav">
                     <div class="col-sm-12 text-center">
+                        <span class="label label-<?=$hc_pending ? 'warning' : ($hc_status == '정산확인' ? 'success' : 'default')?>"><?=$hc_status?></span>
                         <button type="button" class="btn btn-xs btn-default js-save">저장</button>
+                        <?php if ($hc_pending) { ?>
+                        <button type="button" class="btn btn-xs btn-primary js-confirm">정산확인</button>
+                        <?php } ?>
+                        <p class="help-block">저장은 정산대기로 유지됩니다. 금액을 검토한 뒤 정산확인을 눌러 확정하세요. 확인 후 수정·삭제하면 다시 확인이 필요합니다.</p>
                     </div>
                 </div>
                 <br />
@@ -146,17 +180,12 @@
                             
                         ?>
 
-                        <?php if($rst2_cnt <=0) { //호텔정보 리스트 데이터가 없는 경우 ?>
+                        <?php if($rst2_cnt <=0) { //호텔정보 리스트 데이터가 없는 경우 → 호텔배정 날짜별 행 + 호텔등록 기간별 요금 로 자동채움 ?>
                         <?php
-                                  
-                                  // [수정] 배정 정보 조회 시에도 sub_eCode 조건 추가
-                                  $qry00 = "SELECT * FROM hotel_assign WHERE grand_eCode='".$data_row['grand_eCode']."' AND sub_eCode='".$data_row['sub_eCode']."'";
-                                     
-                                  $rst00 = $dbConn->query($qry00);
                                   $jj=0;
-                                  $rst00_cnt = mysqli_num_rows($rst00);
-                                  while($row00 = mysqli_Fetch_assoc($rst00)){
-                                  $rowspan_0 = "rowspan='$rst00_cnt'"; 
+                                  $rst00_cnt = count($hc_auto['days']);
+                                  foreach($hc_auto['days'] as $row00){
+                                  $rowspan_0 = "rowspan='$rst00_cnt'";
                             ?>
                         <tr class="basic-class" param ="tr-parent"> 
                             <?php if($jj ==0) { ?>
@@ -173,26 +202,27 @@
                                             <?php $hotelList = getHotelList();
                                             while($row11 = mysqli_Fetch_assoc($hotelList)){
                                             ?>
-                                            <option value="<?=$row11['h_code']?>" <?php if($row00['hotel_code'] == $row11['h_code']) echo 'selected'; ?> ><?=$row11['h_name']?></option>
+                                            <option value="<?=$row11['h_code']?>" <?php if($row00['h_code'] == $row11['h_code']) echo 'selected'; ?> ><?=$row11['h_name']?></option>
                                             <?php }?>
                                         </select>
-                                    </div>    
+                                        <div class="small text-muted js-stayInfo"><?=$row00['day']?>일차 <?=$row00['stay_date']?><?=$row00['season'] != '' ? ' · '.htmlspecialchars($row00['season']) : ''?><?php if ($row00['rate'] === '' && hotelRateReady()) { ?> <span class="text-danger">요금미등록</span><?php } ?></div>
+                                    </div>
                                     <div class="col-sm-3">
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-addon">RATE/RM</span>
-                                            <input type="text" name="hotelRateRm[]" class="form-control rate" aria-label="RATE/RM" value=""/>
+                                            <input type="text" name="hotelRateRm[]" class="form-control rate" aria-label="RATE/RM" value="<?=$row00['rate']?>"/>
                                         </div>
                                     </div>
                                     <div class="col-sm-3">
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-addon">RM수</span>
-                                            <input type="text" name="hotelRm[]" class="form-control rm" aria-label="RM수" value="<?=$row00['pcnt']?>"/>
+                                            <input type="text" name="hotelRm[]" class="form-control rm" aria-label="RM수" value="<?=$row00['room_cnt']?>"/>
                                         </div>
                                     </div>
                                     <div class="col-sm-3">
                                         <div class="input-group input-group-sm">
                                             <span class="input-group-addon">호텔비</span>
-                                            <input type="text" name="hotelCost[]" class="form-control hotelCost" aria-label="호텔비" value=""/>
+                                            <input type="text" name="hotelCost[]" class="form-control hotelCost" aria-label="호텔비" value="<?=$row00['amt']?>"/>
                                         </div>
                                     </div>
                                     
@@ -345,7 +375,7 @@
                         </tr>
                         <tr>
                             <td colspan="16">
-                                <textarea class="form-control" rows="7" name="memo" placeholder="메모"><?=$hotel_sum_data['memo']?></textarea>
+                                <textarea class="form-control" rows="7" name="memo" placeholder="메모"><?=htmlspecialchars($hotel_sum_data['memo'] ?? '', ENT_QUOTES)?></textarea>
                             </td>
                         </tr>
                     </tbody>
@@ -359,10 +389,13 @@
     ?>
     <script>
         
-        var number = "<?=$_GET['number']?>";
+        var number = <?=$seqno?>;
+        // 호텔등록 기간별 요금 기타비용 단가 { "호텔코드|E01코드": RATE } — 이 행사 숙박일 기준
+        var hotelEtcRates = <?=json_encode((object)$hc_etcRates)?>;
 
         $(document).ready(function () {
             pt.initReservationList() ;
+            if ($('#totalPayment').val() === '') calcuAmount();   // 자동채움된 호텔비 합계 표시 (저장 전)
 
             
             $('.js-addPlusRow').on( 'click', function () {
@@ -380,6 +413,7 @@
                 
                 newrow.find('.hotel_seq').val('');
                 newrow.find('.etc_seq').val('');
+                newrow.find('.js-stayInfo').remove();
                 newrow.find(".hotellist").chosen({width: '100%' });
                 newrow.find($('.chosen-container-single:last')).css('display','none');
                 newrow.find($('.hotel_div .chosen-container-single:last')).css('display','none');
@@ -408,8 +442,14 @@
 
         $(".hotellist").chosen({width: '100%' });
 
-        //저장클릭
-        $(document).on("click",".js-save",function(e) { 
+        // 저장은 대기, 정산확인은 현재 입력 내용을 저장하고 확정
+        $(document).off('click.hotelSave').on('click.hotelSave', '.js-save, .js-confirm', function(e) {
+            e.preventDefault();
+            var confirming = $(this).hasClass('js-confirm');
+            if (confirming && !confirm('현재 호텔정산 금액을 확인하고 확정하시겠습니까?')) return;
+            $('#mode').val(confirming ? 'confirm' : 'save');
+            calcuAmount();
+            $('.js-save, .js-confirm').prop('disabled', true);
             
             var form = $("#frnName").closest("form");
             var formData = new FormData(form[0]);
@@ -422,19 +462,19 @@
                 processData: false,
                 contentType: false,
                 success: function (response) {
-                    var msg = response.split("/");
+                    var msg = $.trim(response).split("/");
 
-                    if(msg[0] =='0') {
-                        alert(msg[1]);
+                    if(msg[0] !== '1') {
+                        alert(msg[1] || '저장에 실패했습니다. 다시 시도하세요.');
 
                         return false;
                     }else{
                         location.href = "hotel_cal2.php?division=6&pdx=1&sub=10&number="+number;
                     }
-                }
+                },
+                error: function () { alert('저장에 실패했습니다. 다시 시도하세요.'); },
+                complete: function () { $('.js-save, .js-confirm').prop('disabled', false); }
             });
-
-            document.getElementById("frnName").submit();  
         });
         
         //호텔비 포커스아웃시
@@ -467,6 +507,28 @@
             calcuAmount();
         });
 
+        //기타비용: 호텔·항목 선택 시 호텔등록 기간별 요금 단가 자동 (RATE가 비어 있을 때만)
+        $(document).off('change.hrate').on('change.hrate', "select[name='hotelSelect_etc[]'], select[name='etcCostSelect[]']", function () {
+            var row = $(this).closest('.row');
+            var key = row.find("select[name='hotelSelect_etc[]']").val() + '|' + row.find("select[name='etcCostSelect[]']").val();
+            var rateInput = row.find("input[name='etcRate[]']");
+            if (rateInput.val() === '' && hotelEtcRates[key] !== undefined) {
+                rateInput.val(hotelEtcRates[key]);
+                etcRowAmount(row);
+            }
+        });
+        //기타비용: RATE × 수량 → 금액 자동
+        $(document).off('input.hrate').on('input.hrate', "input[name='etcRate[]'], input[name='etcCount[]']", function () {
+            etcRowAmount($(this).closest('.row'));
+        });
+        function etcRowAmount(row) {
+            var rate = row.find("input[name='etcRate[]']").val();
+            var cnt = row.find("input[name='etcCount[]']").val();
+            if (rate === '' || cnt === '' || isNaN(rate) || isNaN(cnt)) return;
+            row.find('.etcAmount').val((parseFloat(rate) * parseFloat(cnt)).toFixed(2));
+            calcuAmount();
+        }
+
         //실제지불총액
         function calcuAmount(){
 
@@ -496,10 +558,13 @@
                 $.ajax({
                     type: 'POST',
                     url: 'hotel_save.php',
-                    data:{seqno:seqno,grandcode:grandcode,subcode:subcode,mode:'delete_hotel'},
+                    data:{seqno:seqno,grandcode:grandcode,subcode:subcode,mode:'delete_hotel', hotel_sumseq:$('[name=hotel_sumseq]').val(), csrf_token:$('[name=csrf_token]').val()},
                     success: function (response) {
+                        var msg = $.trim(response).split('/');
+                        if (msg[0] !== '1') { alert(msg[1] || '삭제에 실패했습니다.'); return; }
                         location.href = "hotel_cal2.php?division=6&pdx=1&sub=10&number="+number;
-                    }
+                    },
+                    error: function () { alert('삭제에 실패했습니다. 다시 시도하세요.'); }
                 }); 
             }
 
@@ -515,10 +580,13 @@
                 $.ajax({
                     type: 'POST',
                     url: 'hotel_save.php',
-                    data:{seqno:seqno,grandcode:grandcode,subcode:subcode,mode:'delete_etc'},
+                    data:{seqno:seqno,grandcode:grandcode,subcode:subcode,mode:'delete_etc', hotel_sumseq:$('[name=hotel_sumseq]').val(), csrf_token:$('[name=csrf_token]').val()},
                     success: function (response) {
-                        location.href = "hotel_cal2.php?division=6&pdx=1&sub=15&number="+number;
-                    }
+                        var msg = $.trim(response).split('/');
+                        if (msg[0] !== '1') { alert(msg[1] || '삭제에 실패했습니다.'); return; }
+                        location.href = "hotel_cal2.php?division=6&pdx=1&sub=10&number="+number;
+                    },
+                    error: function () { alert('삭제에 실패했습니다. 다시 시도하세요.'); }
                 }); 
             }
 
