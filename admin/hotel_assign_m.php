@@ -1,5 +1,7 @@
 <?php
+   if (session_status() === PHP_SESSION_NONE) session_start();
    include "include/header.php";
+   if (empty($_SESSION['hotel_assign_csrf'])) $_SESSION['hotel_assign_csrf'] = bin2hex(random_bytes(32));   // update_cnt.php 방갯수 변경용
   //  include "include/inc_base.php";
 	if ($_COOKIE['MEMLOGIN_ADMIN_HELLO'] !="") {
 	} else {
@@ -675,6 +677,8 @@
 				type: 'POST',
 				data: {
 					seq_no: seq_no,
+					grand_eCode: <?=json_encode((string)$gcode, JSON_HEX_TAG)?>,
+					csrf_token: <?=json_encode($_SESSION['hotel_assign_csrf'])?>,
 					sub_eCode: sub_eCode,
 					pcnt: pcnt,
 					day: day,

@@ -46,7 +46,9 @@
 
     function printSingle(){
 
-		global $dbConn,$division,$crev,$pdx,$sub,$startDate1,$endDate1,$guideid;
+		global $dbConn,$division,$crev,$pdx,$sub,$startDate1,$endDate1,$guideid,$gs_summary;
+		$gs_summary = array();
+		$gs_seen = array();
 
         if ($startDate1) {
             $from_w = " AND a.stDate >= '$startDate1' ";
@@ -120,7 +122,9 @@
 			a.seq_no, a.grand_eCode, a.sub_eCode, a.stDate, a.guide_id,
 			a.p_code, a.p_name,
 			gsm.settle_code, gsm.finance_date, gsm.report_date, gsm.check_out, gsm.check_date,
-			ml.kor_name
+			ml.kor_name,
+			-- 정산금액: arap_target_cards.php 와 같은 기준 (입금 - 식비/입장비/기타/쇼핑)
+			COALESCE(gi.amt, 0) - (COALESCE(gml.amt, 0) + COALESCE(gad.amt, 0) + COALESCE(gec.amt, 0) + COALESCE(gsh.amt, 0)) AS settle_amt
 		  FROM tour_guide a
 		  LEFT JOIN (
 			-- 한 행사(grand_eCode+sub_eCode)에 정산마스터가 중복 존재해도
@@ -142,6 +146,11 @@
 		   AND gsm.sub_eCode   = a.sub_eCode
 		  LEFT JOIN member_list ml
 			ON ml.userid = a.guide_id
+		  LEFT JOIN (SELECT settle_code, SUM(input_amt * input_cnt) amt FROM guide_inputamt GROUP BY settle_code) gi ON gi.settle_code = gsm.settle_code
+		  LEFT JOIN (SELECT settle_code, SUM(meal_pricetotal) amt FROM guide_meal GROUP BY settle_code) gml ON gml.settle_code = gsm.settle_code
+		  LEFT JOIN (SELECT settle_code, SUM(e_pricetot) amt FROM guide_admission GROUP BY settle_code) gad ON gad.settle_code = gsm.settle_code
+		  LEFT JOIN (SELECT settle_code, SUM(etc_amt) amt FROM guide_etcamt GROUP BY settle_code) gec ON gec.settle_code = gsm.settle_code
+		  LEFT JOIN (SELECT settle_code, SUM(home_comamt) amt FROM guide_shopping GROUP BY settle_code) gsh ON gsh.settle_code = gsm.settle_code
 		  $where
 			AND EXISTS (
 			  SELECT 1
@@ -170,6 +179,20 @@
 
 			 //상태
 			 $status = getGuideStatus($row1['grand_eCode'],$row1['sub_eCode']);
+			 // 탭 필터용 상태 키 (체크나감은 뒤에 날짜가 붙으므로 앞부분만)
+			 $st_key = strip_tags($status);
+			 if (strpos($st_key, '체크나감') === 0) $st_key = '체크나감';
+			 $st_badge = gsStBadge($st_key);
+			 if ($st_key === '체크나감') $st_badge .= "<div class='small text-muted'>".trim(substr(strip_tags($status), strlen('체크나감')))."</div>";
+
+			 // 월별·상태별 요약 (건수는 목록 행 기준, 금액은 정산코드당 1번만)
+			 $ym = substr($row1['stDate'], 0, 7);
+			 if (!isset($gs_summary[$ym][$st_key])) $gs_summary[$ym][$st_key] = array('cnt' => 0, 'amt' => 0);
+			 $gs_summary[$ym][$st_key]['cnt']++;
+			 if ($row1['settle_code'] != '' && !isset($gs_seen[$row1['settle_code']])) {
+				 $gs_seen[$row1['settle_code']] = 1;
+				 $gs_summary[$ym][$st_key]['amt'] += $row1['settle_amt'];
+			 }
 			 //가이드정보
 			 $korname = getinfo_dbMember($row1['guide_id']);
 
@@ -177,7 +200,7 @@
              $check_out = $guide_code['check_out'];
              $check_date = $guide_code['check_date'];
 
-            echo "<tr>
+            echo "<tr data-st='".htmlspecialchars($st_key, ENT_QUOTES)."'>
                  <td align='center'><a href='guide_cal_m.php?division=6&pdx=2&sub=10&number=$row1[seq_no]&scode=$guide_code[settle_code]'>$guide_code[settle_code]</a></td>
 				 <td align='center'><a href='guide_cal_m.php?division=6&pdx=2&sub=10&number=$row1[seq_no]&scode=$guide_code[settle_code]'>$grandCode</a></td>
 				 <td align='center'><a href='guide_cal_m.php?division=6&pdx=2&sub=10&number=$row1[seq_no]&scode=$guide_code[settle_code]'>$row1[stDate]</a></td>
@@ -195,11 +218,31 @@
                  } 
 				 echo "
                  </td>
-				 <td align='center'><a href='guide_cal_m.php?division=6&pdx=2&sub=10&number=$row1[seq_no]&scode=$guide_code[settle_code]'>$status</a></td>
+				 <td align='center'><a href='guide_cal_m.php?division=6&pdx=2&sub=10&number=$row1[seq_no]&scode=$guide_code[settle_code]'>$st_badge</a></td>
                  
                  </tr>";
         }
 	}
+
+	function gsAmt($a) { return ($a < 0 ? '-$' : '$').number_format(abs($a), 2); }
+
+	// 상태 배지 색 (흰 글자 대비 4.5:1 이상)
+	function gsStColor($st) {
+		$c = array('미등록' => '#6c757d', '등록' => '#337ab7', '정산보고완료' => '#6f42c1',
+		           '체크나감' => '#b35400', '대표이사확인' => '#0f766e', '회계확인' => '#15803d');
+		return isset($c[$st]) ? $c[$st] : '#6c757d';
+	}
+	function gsStBadge($st) {
+		return "<span class='gs-st' style='background:".gsStColor($st)."'>".htmlspecialchars($st)."</span>";
+	}
+
+	// 목록을 먼저 만들어 둔다 (요약표가 목록 위에 나오도록)
+	$gs_summary = array();
+	ob_start();
+	printSingle();
+	$gs_rows_html = ob_get_clean();
+	$gs_sts = array('미등록', '등록', '정산보고완료', '체크나감', '대표이사확인', '회계확인');
+	ksort($gs_summary);
 
 ?>
 	<div id="contentwrapper" class="reservationDetailForm">
@@ -299,6 +342,60 @@
 					<br />
 					<div class="row">
 						<div class="col-sm-12">
+							<style>
+								.gs-st { display:inline-block; min-width:84px; padding:4px 10px; border-radius:12px; color:#fff; font-size:12px; font-weight:600; line-height:1.4; white-space:nowrap; text-align:center; }
+							</style>
+							<!-- 월별·상태별 정산금액 요약 -->
+							<table class="table table-bordered table-condensed" id="settleSummary">
+								<thead>
+									<tr class="active">
+										<th class="text-center">기간</th>
+										<?php foreach ($gs_sts as $st) { ?><th class="text-center"><?=gsStBadge($st)?></th><?php } ?>
+										<th class="text-center">합계</th>
+									</tr>
+								</thead>
+								<tbody>
+								<?php
+									$gs_col = array();
+									foreach ($gs_summary as $ym => $by_st) {
+										$r_cnt = 0; $r_amt = 0;
+										// 그 달 중 실제 조회기간에 걸친 구간 (예: 2026-11-13 ~ 2026-11-30)
+										$m_from = $ym.'-01';
+										$m_to   = date('Y-m-t', strtotime($m_from));
+										if ($startDate1 > $m_from) $m_from = $startDate1;
+										if ($endDate1 != '' && $endDate1 < $m_to) $m_to = $endDate1;
+										echo "<tr><td class='text-center'>$m_from ~ $m_to</td>";
+										foreach ($gs_sts as $st) {
+											$c = isset($by_st[$st]) ? $by_st[$st] : array('cnt' => 0, 'amt' => 0);
+											$r_cnt += $c['cnt']; $r_amt += $c['amt'];
+											if (!isset($gs_col[$st])) $gs_col[$st] = array('cnt' => 0, 'amt' => 0);
+											$gs_col[$st]['cnt'] += $c['cnt']; $gs_col[$st]['amt'] += $c['amt'];
+											echo "<td class='text-right'>".($c['cnt'] ? $c['cnt']."건<br/>".gsAmt($c['amt']) : '')."</td>";
+										}
+										echo "<td class='text-right'><b>{$r_cnt}건<br/>".gsAmt($r_amt)."</b></td></tr>";
+									}
+									if (empty($gs_summary)) echo "<tr><td colspan='".(count($gs_sts) + 2)."' class='text-center'>조회된 행사가 없습니다.</td></tr>";
+								?>
+								</tbody>
+								<?php if (!empty($gs_summary)) { $t_cnt = 0; $t_amt = 0; ?>
+								<tfoot>
+									<tr class="active">
+										<td class="text-center"><b>합계</b></td>
+										<?php foreach ($gs_sts as $st) { $c = $gs_col[$st]; $t_cnt += $c['cnt']; $t_amt += $c['amt']; ?>
+										<td class="text-right"><b><?=$c['cnt']?>건<br/><?=gsAmt($c['amt'])?></b></td>
+										<?php } ?>
+										<td class="text-right"><b><?=$t_cnt?>건<br/><?=gsAmt($t_amt)?></b></td>
+									</tr>
+								</tfoot>
+								<?php } ?>
+							</table>
+							<p class="text-muted small" style="margin-top:-12px;">정산금액 = 입금 − (식비 + 입장비 + 기타 + 쇼핑), AR/AP 대상 화면과 같은 기준. 미등록 행사는 금액 없음.</p>
+
+							<ul class="nav nav-tabs" id="statusTabs" style="margin-bottom:10px;">
+								<?php foreach (array_merge(array(''), $gs_sts) as $st) { ?>
+								<li><a href="#" data-st="<?=$st?>"><?=($st === '' ? '전체' : $st)?> <span class="badge"<?=($st === '' ? '' : " style='background:".gsStColor($st)."'")?>>0</span></a></li>
+								<?php } ?>
+							</ul>
 							<table id='ctable' class="table table-striped table-bordered table-hover table-condensed js-productTable">
 								<thead>
 									<tr>
@@ -317,7 +414,7 @@
 										</tr>
 								</thead>
 								<tbody>
-									<?php  echo printSingle(); ?>
+									<?php echo $gs_rows_html; ?>
 
 								</tbody>
 							</table>
@@ -335,13 +432,46 @@
 
             var dateToday = new Date()
 
+			// 상태 탭 필터 (선택 탭은 상세 다녀와도 유지)
+			var curSt = '';
+			try { curSt = localStorage.getItem('guide_settle_tab') || ''; } catch (e) {}
+			if (!$('#statusTabs a[data-st="' + curSt + '"]').length) curSt = '';
+
+			$.fn.dataTable.ext.search.push(function (settings, data, idx) {
+				if (settings.nTable.id !== 'ctable' || curSt === '') return true;
+				return $(settings.aoData[idx].nTr).attr('data-st') === curSt;
+			});
+
 			var oTable = $('#ctable').dataTable({
 				stateSave: true,
 				pageLength: 100,
+				searching: true, // 탭 필터(ext.search)용. 전역 기본값이 false라 켜되 검색창(f)은 dom에서 뺀다
+				dom: "<'row'<'col-sm-12'tr>><'row'<'col-sm-5'i><'col-sm-7'p>>",
 				"order": [[ 2, "asc" ]]
 			});
+			var api = oTable.api();
 
 			$(".dataTables_length").css({ "display" :"none" });
+
+			// 탭별 건수
+			var stCnt = { '': 0 };
+			$(api.rows().nodes()).each(function () {
+				var s = $(this).attr('data-st');
+				stCnt[s] = (stCnt[s] || 0) + 1;
+				stCnt['']++;
+			});
+			$('#statusTabs a').each(function () {
+				$(this).find('.badge').text(stCnt[$(this).attr('data-st')] || 0);
+			});
+			$('#statusTabs a[data-st="' + curSt + '"]').parent().addClass('active');
+
+			$('#statusTabs').off('click.stTab').on('click.stTab', 'a', function (e) {
+				e.preventDefault();
+				curSt = $(this).attr('data-st');
+				try { localStorage.setItem('guide_settle_tab', curSt); } catch (err) {}
+				$(this).parent().addClass('active').siblings().removeClass('active');
+				api.page('first').draw(false);
+			});
 
             // '확인 완료' 버튼 클릭 이벤트 처리
             $('#ctable').on('click', '.check-button', function() {

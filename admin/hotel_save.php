@@ -37,8 +37,10 @@ try {
         throw new RuntimeException('잘못된 요청입니다.');
     }
     $deleting = ($mode === 'delete_hotel' || $mode === 'delete_etc');
-    $g = hotelSaveText(isset($_POST[$deleting ? 'grandcode' : 'grand_eCode']) ? $_POST[$deleting ? 'grandcode' : 'grand_eCode'] : '');
-    $s = hotelSaveText(isset($_POST[$deleting ? 'subcode' : 'sub_eCode']) ? $_POST[$deleting ? 'subcode' : 'sub_eCode'] : '');
+    $gIn = isset($_POST[$deleting ? 'grandcode' : 'grand_eCode']) ? $_POST[$deleting ? 'grandcode' : 'grand_eCode'] : '';
+    $sIn = isset($_POST[$deleting ? 'subcode' : 'sub_eCode']) ? $_POST[$deleting ? 'subcode' : 'sub_eCode'] : '';
+    $g = hotelSaveText($gIn);
+    $s = hotelSaveText($sIn);
     if ($g === '' || $s === '') throw new RuntimeException('행사코드가 없습니다.');
     $scope = "grand_eCode='$g' AND sub_eCode='$s'";
     $sumId = hotelSaveId(isset($_POST['hotel_sumseq']) ? $_POST['hotel_sumseq'] : '');
@@ -50,6 +52,11 @@ try {
     $sum = $dbConn->query("SELECT * FROM hotel_settlesum WHERE $scope ORDER BY seq_no DESC LIMIT 1 FOR UPDATE")->fetch_assoc();
     if ($sumId !== ($sum ? (int)$sum['seq_no'] : 0)) {
         throw new RuntimeException('정산 자료가 변경되었습니다. 새로고침 후 다시 확인하세요.');
+    }
+    // 합계 번호가 같아도 화면을 연 뒤 다른 직원·자동정산이 금액·상태를 바꿨으면 거부 (잠금 후 다시 계산한 버전과 비교)
+    if (!isset($_POST['settle_ver']) || !is_string($_POST['settle_ver'])
+        || !hash_equals(hotelSettleVersion((string)$gIn, (string)$sIn), $_POST['settle_ver'])) {
+        throw new RuntimeException('다른 사용자가 정산 자료를 수정했습니다. 새로고침 후 다시 확인하세요.');
     }
     if ($mode === 'confirm' && (!$sum || !in_array($sum['status'], array('AUTO', 'WAIT'), true))) {
         throw new RuntimeException('정산대기 건만 확인할 수 있습니다.');

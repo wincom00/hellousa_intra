@@ -10,7 +10,8 @@ include_once 'func_list.php';
 include_once 'dong_func.php';
 if (!hotelRateReady()) exit("hotel_rate 테이블이 없거나 HOTEL_RATE_AUTO=false\n");
 
-$dbConn->begin_transaction();
+// begin_transaction() 이 아니라 autocommit(false) — saveHotelAutoSettle 이 호출측 트랜잭션으로 보고 SAVEPOINT 만 쓰게 (커밋 방지)
+$dbConn->autocommit(false);
 $fail = 0;
 function ck($label, $got, $want) {
     global $fail;
@@ -123,6 +124,23 @@ ck('E1 저장된 객실행', $s1['v'], '150x2=300.00,150x2=300.00,100x2=200.00')
 ck('E1 저장된 조식행', $s2['v'], '25x4=100.00,20x2=40.00');
 ck('E1 저장된 합계 / 상태', $s3['real_amt'].' '.$s3['status'], '940.00 AUTO');
 ck('E1 반환 합계', $total, 940);
+
+echo "\n4) 저장 실패·담당자 저장분 — 기존 정산 보존\n";
+$snap = function () use ($dbConn) {
+    return implode('|', $dbConn->query("SELECT
+        (SELECT GROUP_CONCAT(CONCAT(seq_no,':',hotel_amt) ORDER BY seq_no) FROM hotel_settle WHERE grand_eCode='ZZTEST-E1') a,
+        (SELECT GROUP_CONCAT(CONCAT(seq_no,':',etc_amt) ORDER BY seq_no) FROM hotel_settleetc WHERE grand_eCode='ZZTEST-E1') b,
+        (SELECT GROUP_CONCAT(CONCAT(seq_no,':',real_amt,':',status) ORDER BY seq_no) FROM hotel_settlesum WHERE grand_eCode='ZZTEST-E1') c")->fetch_assoc());
+};
+$before = $snap();
+$bad = $b;
+$bad['days'][] = array('h_code' => 'ZZT001', 'rate' => "1', 'x", 'room_cnt' => 1, 'amt' => 1);   // 마지막 객실 INSERT 만 실패
+ck('E1 중간 INSERT 실패 → false', var_export(saveHotelAutoSettle('ZZTEST-E1', 'ZZTEST-S', $bad, 'fail', true), true), 'false');
+ck('E1 실패 후 객실·기타비용·합계 그대로', $snap(), $before);
+$dbConn->query("UPDATE hotel_settlesum SET status='DONE' WHERE grand_eCode='ZZTEST-E1'");
+$before = $snap();
+ck('E1 정산확인(DONE) 후 자동정산 → false', var_export(saveHotelAutoSettle('ZZTEST-E1', 'ZZTEST-S', $b, 'done', true), true), 'false');
+ck('E1 확정 자료 그대로', $snap(), $before);
 
 $dbConn->rollback();
 $left = $dbConn->query("SELECT (SELECT COUNT(*) FROM hotel_rate WHERE memo='check' AND userid='cli') + (SELECT COUNT(*) FROM hotel_assign WHERE grand_eCode LIKE 'ZZTEST%') + (SELECT COUNT(*) FROM hotel_settlesum WHERE grand_eCode LIKE 'ZZTEST%') c")->fetch_assoc();

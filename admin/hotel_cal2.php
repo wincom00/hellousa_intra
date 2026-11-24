@@ -28,8 +28,11 @@
 
     // [수정] 모든 정산 정보 조회 시 grand_eCode와 sub_eCode를 동시에 체크하도록 변경
     
+    // 정산 자료 버전 — 아래 조회보다 먼저 받아야, 그 사이 바뀐 내용이 있으면 저장 시 충돌로 잡힌다 (hotel_save.php 에서 비교)
+    $hc_ver = hotelSettleVersion($data_row['grand_eCode'], $data_row['sub_eCode']);
+
     // HOTEL SETTLE 정보
-    $qry2 = "SELECT * FROM hotel_settle WHERE grand_eCode = '$data_row[grand_eCode]' AND sub_eCode = '$data_row[sub_eCode]' "; 
+    $qry2 ="SELECT * FROM hotel_settle WHERE grand_eCode = '$data_row[grand_eCode]' AND sub_eCode = '$data_row[sub_eCode]' "; 
     $rst2 = $dbConn->query($qry2);
 
     // HOTEL SETTLE ETC 정보
@@ -82,6 +85,7 @@
                 <input type="hidden" name="sub_eCode" id="sub_eCode" value="<?=$data_row['sub_eCode']?>"> 
                 <input type="hidden" name="m_rate_h" id="m_rate_h" value="<?=$data_row['base_rate']?>">
                 <input type="hidden" name="hotel_sumseq" value="<?=$hotel_sum_data['seq_no']?>">
+                <input type="hidden" name="settle_ver" value="<?=$hc_ver?>">
 
                 <div class="row no-nav">
                     <div class="col-sm-12 text-center">
@@ -558,7 +562,7 @@
                 $.ajax({
                     type: 'POST',
                     url: 'hotel_save.php',
-                    data:{seqno:seqno,grandcode:grandcode,subcode:subcode,mode:'delete_hotel', hotel_sumseq:$('[name=hotel_sumseq]').val(), csrf_token:$('[name=csrf_token]').val()},
+                    data:{seqno:seqno,grandcode:grandcode,subcode:subcode,mode:'delete_hotel', hotel_sumseq:$('[name=hotel_sumseq]').val(), settle_ver:$('[name=settle_ver]').val(), csrf_token:$('[name=csrf_token]').val()},
                     success: function (response) {
                         var msg = $.trim(response).split('/');
                         if (msg[0] !== '1') { alert(msg[1] || '삭제에 실패했습니다.'); return; }
@@ -580,7 +584,7 @@
                 $.ajax({
                     type: 'POST',
                     url: 'hotel_save.php',
-                    data:{seqno:seqno,grandcode:grandcode,subcode:subcode,mode:'delete_etc', hotel_sumseq:$('[name=hotel_sumseq]').val(), csrf_token:$('[name=csrf_token]').val()},
+                    data:{seqno:seqno,grandcode:grandcode,subcode:subcode,mode:'delete_etc', hotel_sumseq:$('[name=hotel_sumseq]').val(), settle_ver:$('[name=settle_ver]').val(), csrf_token:$('[name=csrf_token]').val()},
                     success: function (response) {
                         var msg = $.trim(response).split('/');
                         if (msg[0] !== '1') { alert(msg[1] || '삭제에 실패했습니다.'); return; }

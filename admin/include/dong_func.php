@@ -211,11 +211,11 @@
       }
 
       // 자동계산 가능 여부: NONE(없음) / AUTO(재계산 가능) / DONE(수동저장 WAIT·확인 DONE — 자동으로 건드리지 않음)
-      function hotelSettleState($grand_eCode, $sub_eCode){
+      function hotelSettleState($grand_eCode, $sub_eCode, $lock = false){
           global $dbConn;
           $g = $dbConn->real_escape_string($grand_eCode);
           $s = $dbConn->real_escape_string($sub_eCode);
-          $sum = $dbConn->query("SELECT status FROM hotel_settlesum WHERE grand_eCode='$g' AND sub_eCode='$s' ORDER BY seq_no DESC LIMIT 1")->fetch_assoc();
+          $sum = $dbConn->query("SELECT status FROM hotel_settlesum WHERE grand_eCode='$g' AND sub_eCode='$s' ORDER BY seq_no DESC LIMIT 1".($lock ? ' FOR UPDATE' : ''))->fetch_assoc();
           if ($sum) return $sum['status'] == 'AUTO' ? 'AUTO' : 'DONE';
           $cnt = $dbConn->query("SELECT (SELECT COUNT(*) FROM hotel_settle WHERE grand_eCode='$g' AND sub_eCode='$s')
                                       + (SELECT COUNT(*) FROM hotel_settleetc WHERE grand_eCode='$g' AND sub_eCode='$s') AS c")->fetch_assoc();
@@ -226,52 +226,86 @@
           global $dbConn;
           $g = $dbConn->real_escape_string($grand_eCode);
           $s = $dbConn->real_escape_string($sub_eCode);
-          $dbConn->query("DELETE FROM hotel_settle WHERE grand_eCode='$g' AND sub_eCode='$s'");
-          $dbConn->query("DELETE FROM hotel_settleetc WHERE grand_eCode='$g' AND sub_eCode='$s'");
-          $dbConn->query("DELETE FROM hotel_settlesum WHERE grand_eCode='$g' AND sub_eCode='$s'");
+          return $dbConn->query("DELETE FROM hotel_settle WHERE grand_eCode='$g' AND sub_eCode='$s'")
+              && $dbConn->query("DELETE FROM hotel_settleetc WHERE grand_eCode='$g' AND sub_eCode='$s'")
+              && $dbConn->query("DELETE FROM hotel_settlesum WHERE grand_eCode='$g' AND sub_eCode='$s'");
       }
 
-      /* buildHotelAutoSettle 결과를 자동정산(status AUTO)으로 저장. 담당자 저장분(DONE)이면 손대지 않고 false.
+      // 정산 자료 버전 — 객실·기타비용·합계 행 전체의 지문. hotel_cal2 가 화면에 넣고, hotel_save 가 잠근 뒤 다시 계산해 비교
+      function hotelSettleVersion($grand_eCode, $sub_eCode){
+          global $dbConn;
+          $g = $dbConn->real_escape_string($grand_eCode);
+          $s = $dbConn->real_escape_string($sub_eCode);
+          $v = '';
+          foreach (array('hotel_settle', 'hotel_settleetc', 'hotel_settlesum') as $t) {
+              $rst = $dbConn->query("SELECT * FROM $t WHERE grand_eCode='$g' AND sub_eCode='$s' ORDER BY seq_no");
+              while ($r = $rst->fetch_assoc()) $v .= $t.serialize($r);
+          }
+          return md5($v);
+      }
+
+      /* 자동정산 쓰기 공통 — hotel_save.php 와 같은 행사 잠금(tour_guide 행 FOR UPDATE)을 잡고 상태를 다시 확인한 뒤
+         $work() 의 삭제·재입력을 한 트랜잭션으로 처리. 그 사이 담당자 저장분(WAIT·DONE)이 됐거나 하나라도 실패하면 전체 원복 후 false.
+         호출측이 이미 트랜잭션(autocommit=0) 안이면 SAVEPOINT 까지만 원복하고 커밋은 호출측에 맡김 (tests/hotel_rate_check.php) */
+      function hotelSettleAutoWrite($grand_eCode, $sub_eCode, $work){
+          global $dbConn;
+          $g = $dbConn->real_escape_string($grand_eCode);
+          $s = $dbConn->real_escape_string($sub_eCode);
+          $began = false;
+          $nested = false;
+          try {
+              $nested = $dbConn->query("SELECT @@autocommit AS a")->fetch_assoc()['a'] == 0;
+              $began = $nested ? $dbConn->query("SAVEPOINT hotel_auto") : $dbConn->begin_transaction();
+              if (!$began) return false;
+              $lock = $dbConn->query("SELECT seq_no FROM tour_guide WHERE grand_eCode='$g' AND sub_eCode='$s' LIMIT 1 FOR UPDATE");
+              $ret = ($lock && hotelSettleState($grand_eCode, $sub_eCode, true) != 'DONE') ? $work() : false;
+              if ($ret !== false && ($nested || $dbConn->commit())) return $ret;
+          } catch (Throwable $e) {
+          }
+          if ($began) {
+              if ($nested) $dbConn->query("ROLLBACK TO SAVEPOINT hotel_auto");
+              else $dbConn->rollback();
+          }
+          return false;
+      }
+
+      /* buildHotelAutoSettle 결과를 자동정산(status AUTO)으로 저장. 담당자 저장분(DONE)이거나 실패하면 기존 정산 그대로 두고 false.
          $replaceEtc  true : 기타비용도 $b['etc']로 교체 (정산목록 일괄 자동정산)
                       false: 기존 기타비용 유지, 객실만 다시 계산 (호텔배정 변경 시) */
       function saveHotelAutoSettle($grand_eCode, $sub_eCode, $b, $memo, $replaceEtc){
-          global $dbConn;
-          if (hotelSettleState($grand_eCode, $sub_eCode) == 'DONE') return false;
-          $g = $dbConn->real_escape_string($grand_eCode);
-          $s = $dbConn->real_escape_string($sub_eCode);
-          $br = $dbConn->query("SELECT pm.base_rate FROM tour_guide tg JOIN product_master pm ON pm.p_code = tg.p_code
-                                WHERE tg.grand_eCode='$g' AND tg.sub_eCode='$s' LIMIT 1")->fetch_assoc();
-          $baseRate = $dbConn->real_escape_string($br ? $br['base_rate'] : '');
-          $m = $dbConn->real_escape_string($memo);
+          return hotelSettleAutoWrite($grand_eCode, $sub_eCode, function () use ($grand_eCode, $sub_eCode, $b, $memo, $replaceEtc) {
+              global $dbConn;
+              $g = $dbConn->real_escape_string($grand_eCode);
+              $s = $dbConn->real_escape_string($sub_eCode);
+              $br = $dbConn->query("SELECT pm.base_rate FROM tour_guide tg JOIN product_master pm ON pm.p_code = tg.p_code
+                                    WHERE tg.grand_eCode='$g' AND tg.sub_eCode='$s' LIMIT 1")->fetch_assoc();
+              $baseRate = $dbConn->real_escape_string($br ? $br['base_rate'] : '');
+              $m = $dbConn->real_escape_string($memo);
 
-          $dbConn->query("DELETE FROM hotel_settle WHERE grand_eCode='$g' AND sub_eCode='$s'");
-          $dbConn->query("DELETE FROM hotel_settlesum WHERE grand_eCode='$g' AND sub_eCode='$s'");
-          if ($replaceEtc) $dbConn->query("DELETE FROM hotel_settleetc WHERE grand_eCode='$g' AND sub_eCode='$s'");
+              $ok = $dbConn->query("DELETE FROM hotel_settle WHERE grand_eCode='$g' AND sub_eCode='$s'")
+                  && $dbConn->query("DELETE FROM hotel_settlesum WHERE grand_eCode='$g' AND sub_eCode='$s'")
+                  && (!$replaceEtc || $dbConn->query("DELETE FROM hotel_settleetc WHERE grand_eCode='$g' AND sub_eCode='$s'"));
 
-          $ok = true;
-          foreach ($b['days'] as $d) {
-              $h = $dbConn->real_escape_string($d['h_code']);
-              $amt = $d['amt'] === '' ? 0 : $d['amt'];
-              $ok = $ok && $dbConn->query("INSERT INTO hotel_settle (grand_eCode, sub_eCode, h_code, rate_rm, room_cnt, hotel_amt, wdate)
-                  VALUES ('$g', '$s', '$h', '{$d['rate']}', '{$d['room_cnt']}', '$amt', now())");
-          }
-          if ($replaceEtc) {
-              foreach ($b['etc'] as $e) {
-                  $h = $dbConn->real_escape_string($e['h_code']);
-                  $ec = $dbConn->real_escape_string($e['etc_code']);
-                  $ok = $ok && $dbConn->query("INSERT INTO hotel_settleetc (grand_eCode, sub_eCode, etc_code, rate, cnt, etc_amt, h_code, wdate)
-                      VALUES ('$g', '$s', '$ec', '{$e['rate']}', '{$e['cnt']}', '{$e['amt']}', '$h', now())");
+              foreach ($b['days'] as $d) {
+                  $h = $dbConn->real_escape_string($d['h_code']);
+                  $amt = $d['amt'] === '' ? 0 : $d['amt'];
+                  $ok = $ok && $dbConn->query("INSERT INTO hotel_settle (grand_eCode, sub_eCode, h_code, rate_rm, room_cnt, hotel_amt, wdate)
+                      VALUES ('$g', '$s', '$h', '{$d['rate']}', '{$d['room_cnt']}', '$amt', now())");
               }
-          }
-          $etc = $dbConn->query("SELECT IFNULL(SUM(etc_amt), 0) AS amt FROM hotel_settleetc WHERE grand_eCode='$g' AND sub_eCode='$s'")->fetch_assoc();
-          $total = round($b['room_amt'] + (float)$etc['amt'], 2);
-          $ok = $ok && $dbConn->query("INSERT INTO hotel_settlesum (grand_eCode, sub_eCode, base_rate, real_amt, memo, status, wdate)
-              VALUES ('$g', '$s', '$baseRate', '$total', '$m', 'AUTO', now())");
-          if (!$ok) {
-              deleteHotelSettle($grand_eCode, $sub_eCode);   // 반쪽 저장 방지 → 미등록으로 돌려 다시 실행 가능하게
-              return false;
-          }
-          return $total;
+              if ($replaceEtc) {
+                  foreach ($b['etc'] as $e) {
+                      $h = $dbConn->real_escape_string($e['h_code']);
+                      $ec = $dbConn->real_escape_string($e['etc_code']);
+                      $ok = $ok && $dbConn->query("INSERT INTO hotel_settleetc (grand_eCode, sub_eCode, etc_code, rate, cnt, etc_amt, h_code, wdate)
+                          VALUES ('$g', '$s', '$ec', '{$e['rate']}', '{$e['cnt']}', '{$e['amt']}', '$h', now())");
+                  }
+              }
+              $etc = $dbConn->query("SELECT IFNULL(SUM(etc_amt), 0) AS amt FROM hotel_settleetc WHERE grand_eCode='$g' AND sub_eCode='$s'")->fetch_assoc();
+              $total = round($b['room_amt'] + (float)$etc['amt'], 2);
+              $ok = $ok && $dbConn->query("INSERT INTO hotel_settlesum (grand_eCode, sub_eCode, base_rate, real_amt, memo, status, wdate)
+                  VALUES ('$g', '$s', '$baseRate', '$total', '$m', 'AUTO', now())");
+              return $ok ? $total : false;   // false → hotelSettleAutoWrite 가 삭제까지 전부 원복
+          });
       }
 
       /* 호텔배정 저장·삭제·방갯수 변경 시 호출 — 결과 안내문 반환 (스위치 off 면 '')
@@ -285,8 +319,10 @@
 
           $b = buildHotelAutoSettle($grand_eCode, $sub_eCode);
           if (count($b['days']) == 0 || count($b['missing']) > 0) {
-              if ($state == 'AUTO') deleteHotelSettle($grand_eCode, $sub_eCode);
-              if (count($b['days']) == 0) return $state == 'AUTO' ? '호텔정산: 배정이 없어 자동정산을 지웠습니다.' : '';
+              $del = $state == 'AUTO' && hotelSettleAutoWrite($grand_eCode, $sub_eCode, function () use ($grand_eCode, $sub_eCode) {
+                  return deleteHotelSettle($grand_eCode, $sub_eCode);
+              });
+              if (count($b['days']) == 0) return $del ? '호텔정산: 배정이 없어 자동정산을 지웠습니다.' : '';
               $miss = array();
               foreach ($b['missing'] as $mv) {
                   $mp = explode(' ', $mv, 2);
@@ -294,10 +330,12 @@
                   $miss[] = ($hi ? $hi['h_name'] : $mp[0]).' '.$mp[1];
               }
               return '호텔정산: 요금 미등록 ('.implode(', ', array_unique($miss)).') — 자동정산하지 않았습니다.'
-                  .($state == 'AUTO' ? ' 기존 자동정산은 지웠습니다.' : '');
+                  .($del ? ' 기존 자동정산은 지웠습니다.' : '');
           }
           $total = saveHotelAutoSettle($grand_eCode, $sub_eCode, $b, '배정 자동정산 '.date('Y-m-d H:i'), false);
-          if ($total === false) return '호텔정산: 자동정산 저장에 실패했습니다.';
+          if ($total === false) return hotelSettleState($grand_eCode, $sub_eCode) == 'DONE'
+              ? '호텔정산: 담당자가 저장한 정산이라 자동 반영하지 않았습니다.'
+              : '호텔정산: 자동정산 저장에 실패했습니다. 기존 정산은 그대로입니다.';
           return '호텔정산: 자동정산 반영 (합계 '.number_format($total, 2).')';
       }
     //호텔별정산 상태가져오기

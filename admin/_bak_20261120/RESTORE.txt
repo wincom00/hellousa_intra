@@ -1,0 +1,35 @@
+가이드정산 목록 탭/요약/배지 + 가이드정산 MIS 보고서 — 되돌리기 안내
+작업일 2026-11-20
+
+────────────────────────────────────────────────────────
+[0] 가장 빠른 방법 — 정산마스터 선택 SQL 만 예전 형태로
+────────────────────────────────────────────────────────
+admin/include/guide_settle_inc.php
+
+    define('GS_FAST_MASTER_JOIN', true);
+                                  ^^^^  <-- false 로 바꾸면 끝
+
+  → 목록·MIS 모두 예전 SQL 형태로 정산마스터를 고른다 (결과 같음, 긴 기간은 느림)
+  → 탭/요약/배지 화면은 그대로 유지
+
+
+────────────────────────────────────────────────────────
+[1] MIS 메뉴만 빼기
+────────────────────────────────────────────────────────
+rollback.sql 실행 (menu_info / menu_info_user 의 4-2-25 행만 지움)
+
+
+────────────────────────────────────────────────────────
+[2] 코드 완전 복원
+────────────────────────────────────────────────────────
+Git Bash 에서 admin 폴더로 이동한 뒤:
+
+    cp -f _bak_20261120/guide_settle.php .
+    rm -f mis_guide_settle.php include/guide_settle_inc.php setup_guide_mis.php tests/gs_status_check.php
+
+PowerShell 이면:
+
+    Copy-Item _bak_20261120\guide_settle.php . -Force
+    Remove-Item mis_guide_settle.php, include\guide_settle_inc.php, setup_guide_mis.php, tests\gs_status_check.php
+
+DB 는 [1] 외에 바뀐 것이 없다. (테이블/컬럼 추가 없음)

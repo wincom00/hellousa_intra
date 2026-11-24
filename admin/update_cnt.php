@@ -1,11 +1,26 @@
 <?php
-
+	 if (session_status() === PHP_SESSION_NONE) session_start();
 	 include("include/inc_base.php");
+	 function update_cnt_fail($msg) {
+	     header('Content-Type: application/json');
+	     echo json_encode(['status' => 'error', 'message' => $msg]);
+	     exit();
+	 }
+	 // 로그인 + 배정관리 권한(5,2,10 고정 — 요청의 division/pdx/sub 는 쓰지 않음) + 호텔배정 화면이 발급한 토큰
+	 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_COOKIE['MEMLOGIN_ADMIN_HELLO']) || empty($user_dbinfo['userid']) || !hasMenuAccess(5, 2, 10)) {
+	     update_cnt_fail('호텔배정 권한이 없습니다. 다시 로그인하세요.');
+	 }
+	 if (empty($_SESSION['hotel_assign_csrf']) || !isset($_POST['csrf_token']) || !is_string($_POST['csrf_token'])
+	     || !hash_equals($_SESSION['hotel_assign_csrf'], $_POST['csrf_token'])) {
+	     update_cnt_fail('화면을 새로고침한 뒤 다시 시도하세요.');
+	 }
+	 session_write_close();
 	 // --- Receive and Sanitize Data ---
 	 // Check if required data is received via POST
-	 if (isset($_POST['seq_no'], $_POST['sub_eCode'], $_POST['pcnt'], $_POST['day'], $_POST['ssub'])) {
+	 if (isset($_POST['seq_no'], $_POST['grand_eCode'], $_POST['sub_eCode'], $_POST['pcnt'], $_POST['day'], $_POST['ssub'])) {
 
 	     $seq_no = $_POST['seq_no'];
+	     $grand_eCode = trim($_POST['grand_eCode']);
 	     $sub_eCode = trim($_POST['sub_eCode']); // Trim whitespace
 	     $pcnt = $_POST['pcnt'];
 	     $day = trim($_POST['day']); // Trim whitespace
@@ -19,8 +34,8 @@
 	     if (!filter_var($pcnt, FILTER_VALIDATE_INT) || $pcnt < 1) {
 	         $errors[] = '수량(pcnt)은 1 이상의 정수여야 합니다.'; // "Quantity (pcnt) must be an integer >= 1."
 	     }
-	     if (empty($sub_eCode)) {
-	          $errors[] = 'sub_eCode는 필수입니다.'; // "sub_eCode is required."
+	     if (empty($grand_eCode) || empty($sub_eCode)) {
+	          $errors[] = '행사코드(grand_eCode, sub_eCode)는 필수입니다.';
 	     }
 	     // Add more validation as needed for 'day', 'ssub', etc.
 
@@ -31,6 +46,11 @@
 	         echo json_encode(['status' => 'error', 'message' => implode("\n", $errors)]);
 	         exit();
 	     }
+
+	     // 배정이 화면의 행사에 속하는지 확인 — 다른 행사의 배정 번호로는 수량·정산을 바꿀 수 없다
+	     $hr_row = $dbConn->query("SELECT grand_eCode, sub_eCode FROM hotel_assign WHERE seq_no=".(int)$seq_no
+	         ." AND grand_eCode='".$dbConn->real_escape_string($grand_eCode)."' AND sub_eCode='".$dbConn->real_escape_string($sub_eCode)."'")->fetch_assoc();
+	     if (!$hr_row) update_cnt_fail('이 행사의 호텔배정이 아닙니다. 새로고침 후 다시 시도하세요.');
 
 	     // --- Prepare and Execute Update Statement ---
 	     // IMPORTANT: Replace 'your_table_name' and column names with your actual table and column names.
@@ -74,11 +94,8 @@
 
 	     // 방갯수 변경 → 호텔정산 자동 반영 (호텔등록 기간별 요금, 담당자 저장분은 제외)
 	     if ($success) {
-	         $hr_row = $dbConn->query("SELECT grand_eCode, sub_eCode FROM hotel_assign WHERE seq_no=".(int)$seq_no)->fetch_assoc();
-	         if ($hr_row) {
-	             $hr_sync = syncHotelSettleFromAssign($hr_row['grand_eCode'], $hr_row['sub_eCode']);
-	             if ($hr_sync != '') $response['message'] .= "\n".$hr_sync;
-	         }
+	         $hr_sync = syncHotelSettleFromAssign($hr_row['grand_eCode'], $hr_row['sub_eCode']);
+	         if ($hr_sync != '') $response['message'] .= "\n".$hr_sync;
 	     }
 
 	   

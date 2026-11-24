@@ -17,6 +17,7 @@ $cases = array(
     'bad_csrf' => array('confirm', 'AUTO', 'AUTO', false),
     'get_request' => array('confirm', 'AUTO', 'AUTO', false),
     'stale_summary' => array('confirm', 'AUTO', 'AUTO', false),
+    'stale_version' => array('confirm', 'AUTO', 'AUTO', false),
     'foreign_room' => array('confirm', 'AUTO', 'AUTO', false),
     'invalid_amount' => array('confirm', 'AUTO', 'AUTO', false),
     'write_failure' => array('confirm', 'AUTO', 'AUTO', false),
@@ -78,6 +79,11 @@ function hasMenuAccess($division, $parent, $sub) {
     global $caseName;
     return $caseName !== 'no_permission' && $division === 6 && $parent === 1 && $sub === 10;
 }
+// 화면을 연 뒤 다른 직원이 금액을 바꾼 상황 = 현재 버전이 화면 버전과 다름 (합계 번호는 같음)
+function hotelSettleVersion($g, $s) {
+    if ($g !== 'TEST' || $s !== 'SUB') throw new Exception('Unscoped version');
+    return 'ver-current';
+}
 $dbConn = new HotelReviewDb($case[1]);
 $user_dbinfo = array('userid' => 'test');
 $_COOKIE = $caseName === 'no_cookie' ? array() : array('MEMLOGIN_ADMIN_HELLO' => 'test');
@@ -85,7 +91,7 @@ $_SESSION = array('hotel_settle_csrf' => 'test-token');
 $_SERVER['REQUEST_METHOD'] = $caseName === 'get_request' ? 'GET' : 'POST';
 $_POST = array('mode' => $case[0], 'grand_eCode' => 'TEST', 'sub_eCode' => 'SUB',
     'grandcode' => 'TEST', 'subcode' => 'SUB', 'seqno' => '20',
-    'hotel_sumseq' => $case[1] === null ? '' : '10', 'csrf_token' => 'test-token',
+    'hotel_sumseq' => $case[1] === null ? '' : '10', 'csrf_token' => 'test-token', 'settle_ver' => 'ver-current',
     'hotelSelect' => array('HOTEL'), 'hotel_seq' => array('20'), 'hotelRateRm' => array('100'),
     'hotelRm' => array('2'), 'hotelCost' => array('200'), 'm_rate_h' => 'USD', 'totalPayment' => '99999',
     'memo' => "Reviewer's memo", 'etcCostSelect' => array(''), 'hotelSelect_etc' => array(''),
@@ -94,6 +100,7 @@ if ($caseName === 'new_save') $_POST['hotel_seq'] = array('');
 if ($caseName === 'legacy_blank_etc') { $_POST['etc_seq'] = array('30'); $_POST['etcRate'] = array('0'); $_POST['etcCount'] = array('0'); $_POST['etcAmount'] = array('0.00'); }
 if ($caseName === 'bad_csrf') $_POST['csrf_token'] = 'wrong';
 if ($caseName === 'stale_summary') $_POST['hotel_sumseq'] = '9';
+if ($caseName === 'stale_version') $_POST['settle_ver'] = 'ver-old';
 if ($caseName === 'invalid_amount') $_POST['hotelCost'] = array('invalid');
 ob_start();
 register_shutdown_function(function () use ($dbConn) {
