@@ -14,10 +14,10 @@
 		exit;
     }
 	if ($startDate1 == "") {
-		$startDate1 =  date("Y-m-d",strtotime("now"));
-		
-		$endDate = date("Y-m-d",strtotime("+3 month"));
-		
+		$startDate1 =  date("Y-m-d");
+	}
+	if ($endDate == "") {
+		$endDate = date("Y-m-d",strtotime($startDate1." +3 month"));
 	}
 	//function printProduct($basedate) {
     function printProduct() {
@@ -30,10 +30,11 @@
 			foreach($keywords as $kw) {
 				  //$kw = mysql_real_escape_string($kw);
 				  $kw = $dbConn->real_escape_string($kw);
-				  $likes[] = "p_name LIKE '%{$kw}%'";
+				  $likes[] = "a.p_name LIKE '%{$kw}%'";
 			}
 		   // $qrynm = "&& a.p_name like '%$pname%'";
-		   $qrynm =" && " .implode(" AND ", $likes)." || a.p_code like '%$pname%'";
+		   $pname_esc = $dbConn->real_escape_string($pname);
+		   $qrynm =" && ((" .implode(" AND ", $likes).") || a.p_code like '%{$pname_esc}%')";
 		   //echo $qrynm;
 		   //exit;
 	    } else {
@@ -78,34 +79,11 @@
 					
 		}
 		
-		$st = date("Y-m-d",strtotime("now"));
-        //echo $st."<br/>".$startDate1;
-		if ($st != $startDate1) {
-		    $startDate3 = substr($startDate1, 0, 7);
-			$endDate3 = substr($endDate, 0, 7);
-			//$qryperiod = " && ((DATE_FORMAT(a.p_vstart,'%Y-%m') <= '$startDate3' && a.p_vend >= '$endDate' )) ";
-			//$qryperiod =" && (DATE_FORMAT(a.p_vend,'%Y-%m')  between '$startDate3' and '$endDate3'
-			 //|| DATE_FORMAT(a.p_vstart,'%Y-%m')  between '$startDate3' and '$endDate3')";
-			 $qryperiod ="&& DATE_FORMAT(a.p_vend,'%Y-%m') >= '$startDate3' and DATE_FORMAT(a.p_vstart,'%Y-%m') <= '$endDate3'";
-		} else {
-			$startDate3 = substr($startDate1, 0, 7);
-			$endDate3 = substr($endDate, 0, 7);
-			//$qryperiod = " && ((DATE_FORMAT(a.p_vstart,'%Y-%m') <= '$startDate3' && a.p_vend >= '$endDate' )) ";
-			//$qryperiod =" && DATE_FORMAT(a.p_vend,'%Y-%m')  between '$startDate3' and '$endDate3'
-			 //|| DATE_FORMAT(a.p_vstart,'%Y-%m')  between '$startDate3' and '$endDate3'";
+		// 판매기간(p_vstart~p_vend)이 검색기간과 겹치는 상품 — 두 쿼리 공통
+		$startDate3 = substr($startDate1, 0, 7);
+		$endDate3 = substr($endDate, 0, 7);
+		$qryperiod = " && DATE_FORMAT(a.p_vend,'%Y-%m') >= '$startDate3' && DATE_FORMAT(a.p_vstart,'%Y-%m') <= '$endDate3'";
 
-			 //$qryperiod =" && ('$startDate3' between DATE_FORMAT(a.p_vstart,'%Y-%m') and DATE_FORMAT(a.p_vend,'%Y-%m')
-			 //|| '$endDate3' between DATE_FORMAT(a.p_vstart,'%Y-%m') and DATE_FORMAT(a.p_vend,'%Y-%m'))";
-			//$qryperiod = " && (a.p_vend <= '$endDate') ";
-			// $qryperiod =" && ('$startDate3' between DATE_FORMAT(a.p_vstart,'%Y-%m') and DATE_FORMAT(a.p_vend,'%Y-%m')
-			// || '$endDate3' between DATE_FORMAT(a.p_vstart,'%Y-%m') and DATE_FORMAT(a.p_vend,'%Y-%m'))";
-
-			 $qryperiod2 =" && ('$startDate3' between DATE_FORMAT(a.p_vstart,'%Y-%m') and DATE_FORMAT(a.p_vend,'%Y-%m')
-			<= '$endDate3' between DATE_FORMAT(a.p_vstart,'%Y-%m') and DATE_FORMAT(a.p_vend,'%Y-%m'))";
-
-			$qryperiod2 ="&& DATE_FORMAT(a.p_vend,'%Y-%m') >= '$startDate3' and DATE_FORMAT(a.p_vstart,'%Y-%m') <= '$endDate3'";
-		}
-		
 		$qryperiod1 = "&& (( b.p_limitdate >= '$startDate1' && b.p_limitdate <= '$endDate' ))";
 		$weektot = array("0", "1", "2","3","4","5","6","9"); 
 		$weeknum= ($weektot[date('w', strtotime($startDate1))]);
@@ -121,13 +99,14 @@
 		union
 		select a.p_code, a.p_name,a.c_code1,a.c_code2,a.p_type,a.p_own,a.p_day,a.price_0dadult,a.price_4dadult,a.p_week 
 		from product_master a ,product_limit b
-		 where 1=1 && a.p_code=b.p_code && b.p_type='R' && a.p_code not REGEXP 'ADD' $qrytca $qrynm $qrycod1 $qrycod2 $qryperiod1 $qryperiod2 $startWeek_qry $deptqry
+		 where 1=1 && a.p_code=b.p_code && b.p_type='R' && a.p_code not REGEXP 'ADD' $qrytca $qrynm $qrycod1 $qrycod2 $qryperiod1 $qryperiod $startWeek_qry $deptqry
 		 group by a.p_code ";
 		$rst1 = $dbConn->query($qry1);
 		//echo $qry1."<br />";
 		while($row1 = $rst1->fetch_assoc()){
 			$cinfo1=codebaseName($row1[c_code1]);
 			$cinfo2=codebaseName($row1[c_code2]);
+			$pcap = "";
 			if ($row1[p_type] == 1) {
 			   $pcap = "로컬상품";
 			} else if ($row1[p_type] == 2) {
@@ -325,9 +304,9 @@
 		})
 		function chksave() {
 				
-                  if ($("#startDate").val() == "") {
+                  if ($("#startDate1").val() == "") {
 						alert("출발일을 입력하세요!");
-						$("#startDate").focus();
+						$("#startDate1").focus();
 						return false;
 				  }
 		}

@@ -1,0 +1,5 @@
+base_reservation.php 검색 조건 수정 - 되돌리기 안내
+작업일 2026-11-24
+
+cp admin/_bak_20261124/base_reservation.php admin/base_reservation.php
+(또는 git checkout -- admin/base_reservation.php)
